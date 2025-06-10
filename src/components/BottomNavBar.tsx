@@ -12,10 +12,10 @@ export function BottomNavBar() {
   const pathname = usePathname();
   const { setSelectedCategory, currentSectionConfig } = useAppContext();
 
-  const sectionHomePath = currentSectionConfig?.path || '/'; // Default to main landing if no section
+  const sectionHomePath = currentSectionConfig?.path || '/'; // Default to section path if in section, else '/'
 
   const navItems = [
-    { href: sectionHomePath, label: 'Home', icon: Home },
+    { href: sectionHomePath, label: 'Home', icon: Home }, // Points to current section's home
     { href: `${sectionHomePath}#product-grid-section`, label: 'Categories', icon: LayoutGrid, isScrollLink: true },
     { href: '/help', label: 'Help', icon: HelpCircle },
     { href: '/account', label: 'Account', icon: User },
@@ -23,7 +23,6 @@ export function BottomNavBar() {
   ];
 
   const handleCategoriesClick = (e: React.MouseEvent<HTMLAnchorElement, MouseEvent>, href: string) => {
-    // Only scroll if on the section's main page
     if (pathname === sectionHomePath) {
       e.preventDefault();
       const categoriesSection = document.getElementById('product-grid-section');
@@ -31,15 +30,12 @@ export function BottomNavBar() {
         categoriesSection.scrollIntoView({ behavior: 'smooth' });
       }
       setSelectedCategory('all');
-    } else {
-      // If not on section home page, navigate to it and then scroll (or just navigate)
-      // For simplicity, direct navigation will occur via Link's href.
-      // To ensure scrolling after navigation, more complex logic or a state variable would be needed.
     }
   };
-  
-  // Hide BottomNavBar on the main landing page ('/')
-  if (pathname === '/') {
+
+  // Hide this section-specific BottomNavBar on the main landing page ('/')
+  // and on the new section selector page ('/sections')
+  if (pathname === '/' || pathname === '/sections') {
     return null;
   }
 

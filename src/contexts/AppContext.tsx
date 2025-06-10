@@ -58,13 +58,13 @@ interface AppContextType {
   isRecommendationsModalOpen: boolean;
   recommendations: Product[];
   isLoadingRecommendations: boolean;
-  
+
   currentSection: AppSection | null;
   currentSectionConfig: SectionConfig | null;
-  
+
   selectedCategory: ProductCategory | 'all';
   setSelectedCategory: (category: ProductCategory | 'all') => void;
-  
+
   searchTerm: string;
   setSearchTerm: (term: string) => void;
   searchFilterType: SearchFilterType;
@@ -77,12 +77,12 @@ interface AppContextType {
 
   addToWishlist: (product: Product) => void;
   removeFromWishlist: (productId: string) => void;
-  
+
   addToViewedProducts: (productId: string) => void;
-  
+
   toggleCart: () => void;
   toggleWishlist: () => void;
-  
+
   openRecommendationsModal: () => void;
   closeRecommendationsModal: () => void;
   fetchRecommendations: () => Promise<void>;
@@ -106,7 +106,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   const [selectedCategory, setSelectedCategory] = useState<ProductCategory | 'all'>('all');
   const [searchTerm, setSearchTerm] = useState('');
   const [searchFilterType, setSearchFilterType] = useState<SearchFilterType>('all');
-  
+
   const { toast } = useToast();
 
   useEffect(() => {
@@ -116,12 +116,14 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
       else if (pathname.startsWith('/cosmetics')) activeSection = 'cosmetics';
       else if (pathname.startsWith('/fastfood')) activeSection = 'fastfood';
 
-      const isAppFeaturePage = pathname === '/' || 
-                               pathname.startsWith('/grocery') || 
-                               pathname.startsWith('/cosmetics') || 
+      // Determine if the current page is one where section-specific data/search applies
+      const isAppFeaturePage = pathname === '/sections' || // Includes section selector
+                               pathname.startsWith('/grocery') ||
+                               pathname.startsWith('/cosmetics') ||
                                pathname.startsWith('/fastfood');
 
       if (activeSection && activeSection !== currentSection) {
+        // Switching to a new product section
         setCurrentSection(activeSection);
         setCurrentSectionConfig(sectionsConfig[activeSection]);
         setCart([]);
@@ -129,27 +131,42 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
         setViewedProducts([]);
         setRecommendations([]);
         setSelectedCategory('all');
-        setSearchTerm(''); 
+        setSearchTerm('');
         setSearchFilterType('all');
       } else if (!activeSection && currentSection !== null) {
-        // Clear section specific states if navigating away from a section homepage, but not if navigating to /
-         if (pathname !== '/') {
-            // setCurrentSection(null); // Potentially keep for non-section global pages if header needs it
-            // setCurrentSectionConfig(null);
-         }
-         if (!isAppFeaturePage) { // Clear search if navigating to help/account/settings
+        // Navigating away from a product section to a global page like /help, /account, or / (new main landing)
+        // but not /sections (which is also global-ish but handles search)
+        if (pathname !== '/sections') {
+            // setCurrentSection(null); // Keep currentSection if navigating to /help etc, header might need it.
+            // setCurrentSectionConfig(null); // No, header needs this to show correct "BoutiqueBox" and link to "/"
+                                          // The header should look "global" when currentSection is null
+        }
+        if (!isAppFeaturePage) { // Clear search if navigating to true global pages (not /sections)
             setSearchTerm('');
             setSearchFilterType('all');
-         }
-
-      } else if (!activeSection && currentSection === null && pathname === '/') {
-        setCurrentSection(null);
-        setCurrentSectionConfig(null);
-        // setSearchTerm(''); // Search term should persist if on landing page
-        // setSearchFilterType('all'); // Filter type is not used on landing
+        }
+      } else if (!activeSection && (pathname === '/' || pathname === '/sections')) {
+        // On the new main landing page '/' or the section selector page '/sections'
+        // No specific product section is active.
+        if (currentSection !== null) { // Was previously in a section, now on / or /sections
+            setCurrentSection(null);
+            setCurrentSectionConfig(null);
+            // Keep search term if on /sections, clear if on new /
+            if (pathname === '/') {
+              setSearchTerm('');
+              setSearchFilterType('all');
+            }
+             // Reset cart/wishlist etc. when leaving a section for / or /sections
+            setCart([]);
+            setWishlist([]);
+            setViewedProducts([]);
+            setRecommendations([]);
+            setSelectedCategory('all');
+        }
       }
 
-      if (!isAppFeaturePage && searchTerm) { // Clear search if on a non-feature page
+      // General rule: if not on a page where search applies, clear search term
+      if (!isAppFeaturePage && searchTerm) {
         setSearchTerm('');
         setSearchFilterType('all');
       }
@@ -188,7 +205,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
       ).filter(item => item.quantity > 0)
     );
   }, []);
-  
+
   const clearCart = useCallback(() => {
     setCart([]);
     toast({
@@ -227,7 +244,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     setViewedProducts((prev) => {
       if (prev.includes(productId)) return prev;
       const newViewed = [...prev, productId];
-      return newViewed.slice(-10); 
+      return newViewed.slice(-10);
     });
   }, []);
 
@@ -253,7 +270,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
       const recommendedProducts = result.recommendations
         .map(id => currentSectionConfig.products.find(p => p.id === id))
         .filter((p): p is Product => Boolean(p));
-      
+
       setRecommendations(recommendedProducts);
       if (recommendedProducts.length > 0) {
         openRecommendationsModal();
