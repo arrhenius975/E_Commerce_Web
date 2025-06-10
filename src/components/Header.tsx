@@ -10,7 +10,7 @@ import { useAppContext } from '@/contexts/AppContext';
 import type { SectionCategory, SearchFilterType } from '@/types';
 import { cn } from '@/lib/utils';
 import { usePathname } from 'next/navigation';
-import { useEffect } from 'react';
+import { useEffect, useState, useRef } from 'react'; // Added useState, useEffect, useRef
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -40,6 +40,10 @@ export function Header() {
   } = useAppContext();
   const pathname = usePathname();
 
+  const [isHeaderVisible, setIsHeaderVisible] = useState(true);
+  const [lastScrollY, setLastScrollY] = useState(0);
+  const headerRef = useRef<HTMLElement>(null);
+
   const cartItemCount = cart.reduce((sum, item) => sum + item.quantity, 0);
   const wishlistItemCount = wishlist.length;
 
@@ -57,6 +61,27 @@ export function Header() {
     // AppContext now handles resetting search term for non-feature pages
   }, [pathname, setSearchTerm]);
 
+  useEffect(() => {
+    const handleScroll = () => {
+      const currentScrollY = window.scrollY;
+      const headerHeight = headerRef.current?.offsetHeight || 100; // Use actual or estimated header height
+
+      if (currentScrollY <= 10) { // Always show if near the top
+        setIsHeaderVisible(true);
+      } else if (currentScrollY > lastScrollY && currentScrollY > headerHeight * 0.5) { // Scrolling down past a threshold
+        setIsHeaderVisible(false);
+      } else if (currentScrollY < lastScrollY) { // Scrolling up
+        setIsHeaderVisible(true);
+      }
+      setLastScrollY(currentScrollY <= 0 ? 0 : currentScrollY); // Ensure lastScrollY is not negative
+    };
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+    };
+  }, [lastScrollY]);
+
 
   const numCategories = categoriesList.length;
   const categoryArcRadius = 80; 
@@ -67,13 +92,18 @@ export function Header() {
 
 
   return (
-    <header className={cn(
-      "sticky top-0 z-40 w-full backdrop-blur supports-[backdrop-filter]:bg-opacity-65",
-      "rounded-b-[50px]", 
-      currentSectionConfig && currentSection 
-        ? "bg-[hsl(var(--header-bg-hsl)/0.85)] text-[hsl(var(--header-fg-hsl))] supports-[backdrop-filter]:bg-[hsl(var(--header-bg-hsl)/0.65)]"
-        : "bg-background/85 text-foreground supports-[backdrop-filter]:bg-background/65"
-    )}>
+    <header
+      ref={headerRef}
+      className={cn(
+        "sticky top-0 z-40 w-full backdrop-blur supports-[backdrop-filter]:bg-opacity-65",
+        "rounded-b-[50px]", 
+        currentSectionConfig && currentSection 
+          ? "bg-[hsl(var(--header-bg-hsl)/0.85)] text-[hsl(var(--header-fg-hsl))] supports-[backdrop-filter]:bg-[hsl(var(--header-bg-hsl)/0.65)]"
+          : "bg-background/85 text-foreground supports-[backdrop-filter]:bg-background/65",
+        "transition-transform duration-300 ease-in-out", // For smooth hide/show animation
+        !isHeaderVisible && "-translate-y-full" // Class to hide the header
+      )}
+    >
       <div className="container flex h-16 items-center justify-between gap-2 md:gap-4">
         <div className="flex items-center gap-2 md:gap-4 shrink-0">
           <Link 
@@ -191,7 +221,7 @@ export function Header() {
       </div>
 
       {currentSection && categoriesList.length > 0 && (
-        <div className="relative h-36 md:h-40 mt-2 flex justify-center items-start">
+         <div className="relative h-36 md:h-40 mt-2 flex justify-center items-start">
           <div className="relative w-[280px] h-[140px] sm:w-[360px] sm:h-[140px] md:w-[420px] md:h-[140px]">
             {categoriesList.map((category, index) => {
               const angle = numCategories > 1 ? startAngle + (index / (numCategories - 1)) * angleSpan : 0;
