@@ -1,7 +1,7 @@
 // src/app/sections/layout.tsx
 import { LayoutComponent } from '@/components/Layout';
 import { ThemeManager } from '@/components/ThemeManager';
-import { MainLandingBottomNav } from '@/components/MainLandingBottomNav';
+// MainLandingBottomNav is no longer included here, its own logic controls visibility.
 
 export default function SectionsLayout({
   children,
@@ -14,7 +14,7 @@ export default function SectionsLayout({
       <LayoutComponent> {/* This includes Header, main content area, global footer etc. */}
         {children}
       </LayoutComponent>
-      <MainLandingBottomNav /> {/* This is the new bottom nav for the /sections page */}
+      {/* <MainLandingBottomNav />  Ensure this is removed */}
     </>
   );
 }

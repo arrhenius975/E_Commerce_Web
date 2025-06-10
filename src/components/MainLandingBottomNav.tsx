@@ -12,14 +12,14 @@ export function MainLandingBottomNav() {
 
   const navItems = [
     { href: '/', label: 'Home', icon: Home },
-    { href: '/sections', label: 'Stores', icon: LayoutGrid }, // Renamed 'Categories' to 'Stores' for clarity
+    { href: '/sections', label: 'Stores', icon: LayoutGrid }, 
     { href: '/help', label: 'Help', icon: HelpCircle },
     { href: '/account', label: 'Account', icon: User },
     { href: '/settings', label: 'Settings', icon: SettingsIcon },
   ];
 
-  // Show this bottom nav only on the root page ('/') and the sections page ('/sections')
-  if (pathname !== '/' && pathname !== '/sections') {
+  // Show this bottom nav only on the root page ('/')
+  if (pathname !== '/') {
     return null;
   }
 
@@ -46,3 +46,4 @@ export function MainLandingBottomNav() {
     </nav>
   );
 }
+
