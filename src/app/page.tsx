@@ -64,8 +64,7 @@ export default function MainPage() {
 
       <main className="grid grid-cols-1 md:grid-cols-3 gap-8 px-4 max-w-6xl w-full">
         {displayedSections.length > 0 ? displayedSections.map((section) => (
-          <Link href={section.href} key={section.name} legacyBehavior>
-            <a className="block group">
+          <Link href={section.href} key={section.name} className="block group">
               <Card className="overflow-hidden transition-all duration-300 ease-in-out hover:shadow-2xl hover:scale-105 h-full flex flex-col">
                 <CardHeader className="p-0">
                   <div className="relative w-full h-48">
@@ -94,7 +93,6 @@ export default function MainPage() {
                   </Button>
                 </CardContent>
               </Card>
-            </a>
           </Link>
         )) : (
           <p className="md:col-span-3 text-center text-muted-foreground text-lg py-10">
