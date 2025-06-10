@@ -50,10 +50,10 @@ export function Header() {
 
 
   const numCategories = categoriesList.length;
-  const categoryArcRadius = 60; // Radius for the downward category arc
-  const yOffsetForArc = 5; // Small offset to push the arc slightly down from the container top
-  const angleSpan = numCategories > 1 ? 140 : 0; // Total angle spread for icons (e.g., 140 degrees)
-  const startAngle = numCategories > 1 ? -angleSpan / 2 : 0; // Start angle for the first icon
+  const categoryArcRadius = 60; 
+  const yOffsetForArc = 5; 
+  const angleSpan = numCategories > 1 ? 180 : 0; // Increased from 140 to 180
+  const startAngle = numCategories > 1 ? -angleSpan / 2 : 0; 
 
 
   return (
@@ -156,24 +156,17 @@ export function Header() {
       </div>
 
       {currentSection && categoriesList.length > 0 && (
-        // Container for the category arc. `items-end` pushes the inner positioning div to its bottom.
-        // `overflow-hidden` is important if icons might go out of bounds during calculation.
-        <div className="relative h-20 md:h-28 mt-2 flex justify-center items-start overflow-hidden">
-          {/* Inner div for positioning icons. Calculations are relative to this div's top-left. */}
+        <div className="relative h-20 md:h-28 mt-2 flex justify-center items-start"> {/* Removed overflow-hidden */}
           <div className="relative w-[280px] h-[70px] sm:w-[360px] sm:h-[90px] md:w-[420px] md:h-[105px]">
             {categoriesList.map((category, index) => {
               const angle = numCategories > 1 ? startAngle + (index / (numCategories - 1)) * angleSpan : 0;
               const radian = angle * (Math.PI / 180);
               
-              // Calculate X position (horizontal)
               const x = categoryArcRadius * Math.sin(radian);
-              // Calculate Y position (vertical) for a downward arc
-              // (1 - cos(radian)) ensures y is 0 at center (angle=0) and positive (downward) at edges
               const y = categoryArcRadius * (1 - Math.cos(radian)) + yOffsetForArc;
 
-              // Determine icon size dynamically or use fixed size
               const iconSizeClass = "w-12 h-12 sm:w-14 sm:h-14"; 
-              const iconSize = 12 * (14/12); // approx width for transform calculation
+              const iconSize = 12 * (14/12); 
 
               return (
                 <button
@@ -185,7 +178,7 @@ export function Header() {
                     selectedCategory === category.value
                       ? 'bg-primary text-primary-foreground shadow-md scale-110'
                       : 'bg-[hsl(var(--primary)/0.15)] shadow-sm hover:bg-[hsl(var(--primary)/0.3)]',
-                    iconSizeClass, // Apply dynamic or fixed icon size
+                    iconSizeClass, 
                     "flex flex-col items-center justify-center" 
                   )}
                   style={{
@@ -209,4 +202,3 @@ export function Header() {
     </header>
   );
 }
-
