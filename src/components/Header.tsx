@@ -50,18 +50,19 @@ export function Header() {
 
 
   const numCategories = categoriesList.length;
-  const radius = 120; 
-  const angleSpan = numCategories > 1 ? 140 : 0;
-  const startAngle = numCategories > 1 ? -angleSpan / 2 : 0;
+  const categoryArcRadius = 60; // Radius for the downward category arc
+  const yOffsetForArc = 5; // Small offset to push the arc slightly down from the container top
+  const angleSpan = numCategories > 1 ? 140 : 0; // Total angle spread for icons (e.g., 140 degrees)
+  const startAngle = numCategories > 1 ? -angleSpan / 2 : 0; // Start angle for the first icon
 
 
   return (
     <header className={cn(
-      "sticky top-0 z-40 w-full backdrop-blur supports-[backdrop-filter]:bg-opacity-65", // Removed border-b
-      "rounded-b-[50px]", // Added curvature to the bottom
+      "sticky top-0 z-40 w-full backdrop-blur supports-[backdrop-filter]:bg-opacity-65",
+      "rounded-b-[50px]", 
       currentSectionConfig && currentSection 
-        ? "bg-[hsl(var(--header-bg-hsl)/0.85)] text-[hsl(var(--header-fg-hsl))] supports-[backdrop-filter]:bg-[hsl(var(--header-bg-hsl)/0.65)]" // Removed border class
-        : "bg-background/85 text-foreground supports-[backdrop-filter]:bg-background/65" // Removed border class
+        ? "bg-[hsl(var(--header-bg-hsl)/0.85)] text-[hsl(var(--header-fg-hsl))] supports-[backdrop-filter]:bg-[hsl(var(--header-bg-hsl)/0.65)]"
+        : "bg-background/85 text-foreground supports-[backdrop-filter]:bg-background/65"
     )}>
       <div className="container flex h-16 items-center justify-between gap-2 md:gap-4">
         <div className="flex items-center gap-2 md:gap-4 shrink-0">
@@ -91,7 +92,7 @@ export function Header() {
                 type="search"
                 placeholder="Search..."
                 className={cn(
-                  "w-full rounded-lg bg-transparent py-2 pl-8 pr-2 h-9 text-sm", // Removed explicit border here, will inherit or be styled based on context
+                  "w-full rounded-lg bg-transparent py-2 pl-8 pr-2 h-9 text-sm",
                   currentSectionConfig 
                     ? "border-[hsl(var(--header-fg-hsl)/0.3)] text-[hsl(var(--header-fg-hsl))] placeholder:text-[hsl(var(--header-fg-hsl)/0.7)] focus:bg-[hsl(var(--background))] focus:text-foreground" 
                     : "border-input placeholder:text-muted-foreground focus:bg-background/50"
@@ -155,13 +156,24 @@ export function Header() {
       </div>
 
       {currentSection && categoriesList.length > 0 && (
-        <div className="relative h-20 md:h-28 mt-2 flex justify-center items-end overflow-hidden">
+        // Container for the category arc. `items-end` pushes the inner positioning div to its bottom.
+        // `overflow-hidden` is important if icons might go out of bounds during calculation.
+        <div className="relative h-20 md:h-28 mt-2 flex justify-center items-start overflow-hidden">
+          {/* Inner div for positioning icons. Calculations are relative to this div's top-left. */}
           <div className="relative w-[280px] h-[70px] sm:w-[360px] sm:h-[90px] md:w-[420px] md:h-[105px]">
             {categoriesList.map((category, index) => {
               const angle = numCategories > 1 ? startAngle + (index / (numCategories - 1)) * angleSpan : 0;
               const radian = angle * (Math.PI / 180);
-              const x = radius * Math.sin(radian);
-              const y = -radius * Math.cos(radian) + radius -10; 
+              
+              // Calculate X position (horizontal)
+              const x = categoryArcRadius * Math.sin(radian);
+              // Calculate Y position (vertical) for a downward arc
+              // (1 - cos(radian)) ensures y is 0 at center (angle=0) and positive (downward) at edges
+              const y = categoryArcRadius * (1 - Math.cos(radian)) + yOffsetForArc;
+
+              // Determine icon size dynamically or use fixed size
+              const iconSizeClass = "w-12 h-12 sm:w-14 sm:h-14"; 
+              const iconSize = 12 * (14/12); // approx width for transform calculation
 
               return (
                 <button
@@ -173,10 +185,11 @@ export function Header() {
                     selectedCategory === category.value
                       ? 'bg-primary text-primary-foreground shadow-md scale-110'
                       : 'bg-[hsl(var(--primary)/0.15)] shadow-sm hover:bg-[hsl(var(--primary)/0.3)]',
-                    "w-12 h-12 sm:w-14 sm:h-14 flex flex-col items-center justify-center"
+                    iconSizeClass, // Apply dynamic or fixed icon size
+                    "flex flex-col items-center justify-center" 
                   )}
                   style={{
-                    left: `calc(50% + ${x}px - ${12 * (14/12) / 2}px)`, 
+                    left: `calc(50% + ${x}px - ${iconSize / 2}px)`, 
                     top: `${y}px`, 
                     transform: `rotate(${angle}deg)`, 
                   }}
@@ -184,7 +197,7 @@ export function Header() {
                 >
                   <category.icon 
                     className={cn(
-                      "h-5 w-5 sm:h-6 sm:w-6 mb-0.5", 
+                      "h-5 w-5 sm:h-6 sm:h-6 mb-0.5", 
                       selectedCategory === category.value ? (currentSectionConfig ? '' : 'text-primary-foreground') : (currentSectionConfig ? 'text-primary' : 'text-primary')
                     )} style={{transform: `rotate(${-angle}deg)`}} />
                 </button>
@@ -196,3 +209,4 @@ export function Header() {
     </header>
   );
 }
+
