@@ -33,20 +33,15 @@ export function Header() {
   const wishlistItemCount = wishlist.length;
 
   const categoriesList: SectionCategory[] = currentSectionConfig?.categories || [];
-  const sectionName = currentSectionConfig?.name || 'BoutiqueBox'; // Default to app name if no section
+  const sectionName = currentSectionConfig?.name || 'BoutiqueBox';
   const sectionPath = currentSectionConfig?.path || '/';
 
 
-  // Determines if the page is one where app-specific features like category browsing,
-  // section-specific search, and recommendations are primary.
-  // This includes the main landing page ('/') and all section homepages.
-  // Excludes global utility pages like /help, /account, /settings.
   const isAppFeaturePage = pathname === '/' || 
                            pathname.startsWith('/grocery') || 
                            pathname.startsWith('/cosmetics') || 
                            pathname.startsWith('/fastfood');
 
-  // Effect to clear search term when navigating away from app feature pages.
   useEffect(() => {
     if (!isAppFeaturePage) {
       setSearchTerm('');
@@ -54,7 +49,6 @@ export function Header() {
   }, [pathname, isAppFeaturePage, setSearchTerm]);
 
 
-  // Semicircle layout constants
   const numCategories = categoriesList.length;
   const radius = 120; 
   const angleSpan = numCategories > 1 ? 140 : 0;
@@ -63,10 +57,11 @@ export function Header() {
 
   return (
     <header className={cn(
-      "sticky top-0 z-40 w-full border-b backdrop-blur supports-[backdrop-filter]:bg-opacity-65",
-      currentSectionConfig && currentSection // Apply section theme if in a section
-        ? "border-[hsl(var(--header-bg-hsl)/0.5)] bg-[hsl(var(--header-bg-hsl)/0.85)] text-[hsl(var(--header-fg-hsl))] supports-[backdrop-filter]:bg-[hsl(var(--header-bg-hsl)/0.65)]"
-        : "border-border bg-background/85 text-foreground supports-[backdrop-filter]:bg-background/65" // Default theme for main landing or global pages
+      "sticky top-0 z-40 w-full backdrop-blur supports-[backdrop-filter]:bg-opacity-65", // Removed border-b
+      "rounded-b-[50px]", // Added curvature to the bottom
+      currentSectionConfig && currentSection 
+        ? "bg-[hsl(var(--header-bg-hsl)/0.85)] text-[hsl(var(--header-fg-hsl))] supports-[backdrop-filter]:bg-[hsl(var(--header-bg-hsl)/0.65)]" // Removed border class
+        : "bg-background/85 text-foreground supports-[backdrop-filter]:bg-background/65" // Removed border class
     )}>
       <div className="container flex h-16 items-center justify-between gap-2 md:gap-4">
         <div className="flex items-center gap-2 md:gap-4 shrink-0">
@@ -89,14 +84,14 @@ export function Header() {
         </div>
         
         {isAppFeaturePage && (
-          <div className="flex-1 min-w-0 px-2 md:px-4"> {/* flex-1 to take space, min-w-0 for overflow */}
-            <div className="relative w-full max-w-xs sm:max-w-sm md:max-w-md mx-auto"> {/* Centered search with max width */}
+          <div className="flex-1 min-w-0 px-2 md:px-4">
+            <div className="relative w-full max-w-xs sm:max-w-sm md:max-w-md mx-auto">
               <SearchIcon className="absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground pointer-events-none" />
               <Input
                 type="search"
                 placeholder="Search..."
                 className={cn(
-                  "w-full rounded-lg bg-transparent py-2 pl-8 pr-2 h-9 text-sm border",
+                  "w-full rounded-lg bg-transparent py-2 pl-8 pr-2 h-9 text-sm", // Removed explicit border here, will inherit or be styled based on context
                   currentSectionConfig 
                     ? "border-[hsl(var(--header-fg-hsl)/0.3)] text-[hsl(var(--header-fg-hsl))] placeholder:text-[hsl(var(--header-fg-hsl)/0.7)] focus:bg-[hsl(var(--background))] focus:text-foreground" 
                     : "border-input placeholder:text-muted-foreground focus:bg-background/50"
@@ -177,7 +172,7 @@ export function Header() {
                     currentSectionConfig ? "focus:ring-[hsl(var(--ring))]" : "focus:ring-ring",
                     selectedCategory === category.value
                       ? 'bg-primary text-primary-foreground shadow-md scale-110'
-                      : 'bg-[hsl(var(--primary)/0.15)] shadow-sm hover:bg-[hsl(var(--primary)/0.3)]', // Translucent green for unselected
+                      : 'bg-[hsl(var(--primary)/0.15)] shadow-sm hover:bg-[hsl(var(--primary)/0.3)]',
                     "w-12 h-12 sm:w-14 sm:h-14 flex flex-col items-center justify-center"
                   )}
                   style={{
