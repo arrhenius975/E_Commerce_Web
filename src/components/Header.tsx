@@ -103,8 +103,10 @@ export function Header() {
                 key={category.value}
                 onClick={() => setSelectedCategory(category.value)}
                 className={cn(
-                  "absolute p-2 rounded-full transition-all duration-200 ease-in-out hover:scale-110 focus:outline-none focus:ring-2 focus:ring-ring", // ring is general, specific ring might be needed
-                  selectedCategory === category.value ? 'bg-primary text-primary-foreground shadow-md scale-110' : 'bg-card text-card-foreground shadow-sm hover:bg-secondary',
+                  "absolute p-2 rounded-full transition-all duration-200 ease-in-out hover:scale-110 focus:outline-none focus:ring-2 focus:ring-ring",
+                  selectedCategory === category.value
+                    ? 'bg-primary text-primary-foreground shadow-md scale-110' // Selected style
+                    : 'bg-[hsl(var(--primary)/0.15)] shadow-sm hover:bg-[hsl(var(--primary)/0.3)]', // Unselected style
                   "w-12 h-12 sm:w-14 sm:h-14 flex flex-col items-center justify-center"
                 )}
                 style={{
@@ -114,7 +116,11 @@ export function Header() {
                 }}
                 title={category.label}
               >
-                <category.icon className={cn("h-5 w-5 sm:h-6 sm:w-6 mb-0.5", selectedCategory === category.value ? '' : 'text-primary')} style={{transform: `rotate(${-angle}deg)`}} />
+                <category.icon 
+                  className={cn(
+                    "h-5 w-5 sm:h-6 sm:w-6 mb-0.5", 
+                    selectedCategory === category.value ? '' : 'text-primary' // Icon color for selected (white) vs unselected (green)
+                  )} style={{transform: `rotate(${-angle}deg)`}} />
               </button>
             );
           })}
