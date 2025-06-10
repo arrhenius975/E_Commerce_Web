@@ -2,7 +2,7 @@
 "use client";
 
 import type { Product, CartItem, WishlistItem, ProductCategory } from '@/types';
-import React, { createContext, useContext, useState, ReactNode, useCallback, useEffect } from 'react';
+import React, { createContext, useContext, useState, ReactNode, useCallback } from 'react';
 import { useToast } from "@/hooks/use-toast";
 import { generatePersonalizedRecommendations, type PersonalizedRecommendationsOutput } from '@/ai/flows/personalized-recommendations';
 import { products as allProducts } from '@/data/products'; // Import all products for recommendations
@@ -16,6 +16,8 @@ interface AppContextType {
   isRecommendationsModalOpen: boolean;
   recommendations: Product[];
   isLoadingRecommendations: boolean;
+  selectedCategory: ProductCategory;
+  setSelectedCategory: (category: ProductCategory) => void;
   addToCart: (product: Product) => void;
   removeFromCart: (productId: string) => void;
   updateCartQuantity: (productId: string, quantity: number) => void;
@@ -41,6 +43,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   const [isRecommendationsModalOpen, setIsRecommendationsModalOpen] = useState(false);
   const [recommendations, setRecommendations] = useState<Product[]>([]);
   const [isLoadingRecommendations, setIsLoadingRecommendations] = useState(false);
+  const [selectedCategory, setSelectedCategory] = useState<ProductCategory>('all');
   const { toast } = useToast();
 
   const addToCart = useCallback((product: Product) => {
@@ -136,7 +139,6 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     try {
       const result: PersonalizedRecommendationsOutput = await generatePersonalizedRecommendations({
         viewedProducts: viewedProducts,
-        // userPreferences: "prefers eco-friendly items" // Example, can be dynamic
       });
       const recommendedProducts = result.recommendations
         .map(id => allProducts.find(p => p.id === id))
@@ -176,6 +178,8 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
         isRecommendationsModalOpen,
         recommendations,
         isLoadingRecommendations,
+        selectedCategory,
+        setSelectedCategory,
         addToCart,
         removeFromCart,
         updateCartQuantity,

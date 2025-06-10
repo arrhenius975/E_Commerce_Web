@@ -3,7 +3,9 @@ import type {Metadata} from 'next';
 import './globals.css';
 import { AppProvider } from '@/contexts/AppContext';
 import { Toaster } from "@/components/ui/toaster";
-import { LayoutComponent } from '@/components/Layout';
+import { LayoutComponent } from '@/components/Layout'; // Renamed for clarity
+import { BottomNavBar } from '@/components/BottomNavBar';
+
 
 export const metadata: Metadata = {
   title: 'BoutiqueBox - Fresh Groceries Delivered',
@@ -24,10 +26,11 @@ export default function RootLayout({
       </head>
       <body className="font-body antialiased">
         <AppProvider>
-          <LayoutComponent>
+          <LayoutComponent> {/* Renamed from <Layout> to <LayoutComponent> if it was named Layout before */}
             {children}
           </LayoutComponent>
           <Toaster />
+          <BottomNavBar /> {/* Add BottomNavBar here */}
         </AppProvider>
       </body>
     </html>

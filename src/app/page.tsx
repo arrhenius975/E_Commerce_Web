@@ -1,22 +1,23 @@
 
 "use client";
 
-import { useState, useEffect, useMemo } from 'react';
+import { useMemo, useEffect } from 'react';
 import { products as allProductsData } from '@/data/products';
-import type { Product, ProductCategory } from '@/types';
+import type { Product } from '@/types';
 import { ProductGrid } from '@/components/ProductGrid';
-import { CategoryTabs } from '@/components/CategoryTabs';
 import { Button } from '@/components/ui/button';
 import { useAppContext } from '@/contexts/AppContext';
 import { Lightbulb } from 'lucide-react';
 
 export default function HomePage() {
-  const [products, setProducts] = useState<Product[]>(allProductsData);
-  const [selectedCategory, setSelectedCategory] = useState<ProductCategory>('all');
-  const { fetchRecommendations, isLoadingRecommendations, addToViewedProducts } = useAppContext();
+  const { 
+    fetchRecommendations, 
+    isLoadingRecommendations, 
+    addToViewedProducts,
+    selectedCategory // Get selectedCategory from context
+  } = useAppContext();
 
   useEffect(() => {
-    // Example: Add some products to viewedProducts on load for demo purposes
     if (allProductsData.length > 0) {
       addToViewedProducts(allProductsData[0].id);
       if (allProductsData.length > 1) {
@@ -27,14 +28,10 @@ export default function HomePage() {
 
   const filteredProducts = useMemo(() => {
     if (selectedCategory === 'all') {
-      return products;
+      return allProductsData;
     }
-    return products.filter((product) => product.category === selectedCategory);
-  }, [products, selectedCategory]);
-
-  const handleCategoryChange = (category: ProductCategory) => {
-    setSelectedCategory(category);
-  };
+    return allProductsData.filter((product) => product.category === selectedCategory);
+  }, [selectedCategory]);
 
   return (
     <div className="container mx-auto py-8 px-4">
@@ -45,9 +42,11 @@ export default function HomePage() {
         </p>
       </section>
 
-      <CategoryTabs selectedCategory={selectedCategory} onCategoryChange={handleCategoryChange} />
+      {/* CategoryTabs component is removed from here, categories are now in Header */}
       
-      <ProductGrid products={filteredProducts} />
+      <div id="product-grid-section"> {/* Added ID for scrolling */}
+        <ProductGrid products={filteredProducts} />
+      </div>
 
       <section className="mt-16 py-12 bg-secondary/50 rounded-lg text-center">
         <h2 className="font-headline text-3xl font-bold mb-4">You might need</h2>
