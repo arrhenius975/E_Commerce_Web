@@ -70,6 +70,9 @@ interface AppContextType {
   searchFilterType: SearchFilterType;
   setSearchFilterType: (filterType: SearchFilterType) => void;
 
+  theme: 'light' | 'dark' | 'system';
+  setTheme: (theme: 'light' | 'dark' | 'system') => void;
+
   addToCart: (product: Product) => void;
   removeFromCart: (productId: string) => void;
   updateCartQuantity: (productId: string, quantity: number) => void;
@@ -106,8 +109,56 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   const [selectedCategory, setSelectedCategory] = useState<ProductCategory | 'all'>('all');
   const [searchTerm, setSearchTerm] = useState('');
   const [searchFilterType, setSearchFilterType] = useState<SearchFilterType>('all');
+  const [theme, setThemeState] = useState<'light' | 'dark' | 'system'>('system');
 
   const { toast } = useToast();
+
+  const setTheme = useCallback((newTheme: 'light' | 'dark' | 'system') => {
+    setThemeState(newTheme);
+    localStorage.setItem('theme', newTheme);
+  }, []);
+
+  useEffect(() => {
+    const storedTheme = localStorage.getItem('theme') as 'light' | 'dark' | 'system' | null;
+    if (storedTheme && ['light', 'dark', 'system'].includes(storedTheme)) {
+      setThemeState(storedTheme);
+    }
+  }, []);
+
+  useEffect(() => {
+    const root = window.document.documentElement;
+    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+
+    const applyCurrentTheme = () => {
+      // Use the React state 'theme' as the source of truth for user's choice
+      if (theme === 'dark') {
+        root.classList.add('dark');
+        root.style.colorScheme = 'dark';
+      } else if (theme === 'light') {
+        root.classList.remove('dark');
+        root.style.colorScheme = 'light';
+      } else { // theme === 'system'
+        if (mediaQuery.matches) {
+          root.classList.add('dark');
+          root.style.colorScheme = 'dark';
+        } else {
+          root.classList.remove('dark');
+          root.style.colorScheme = 'light';
+        }
+      }
+    };
+
+    applyCurrentTheme(); // Apply on mount and when theme state changes
+
+    if (theme === 'system') {
+      mediaQuery.addEventListener('change', applyCurrentTheme);
+      return () => mediaQuery.removeEventListener('change', applyCurrentTheme);
+    } else {
+      // Clean up listener if theme is not 'system' anymore
+      mediaQuery.removeEventListener('change', applyCurrentTheme);
+    }
+  }, [theme]); // Re-run when theme (user's choice) changes
+
 
  useEffect(() => {
     if (!pathname) return;
@@ -116,58 +167,45 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     if (pathname.startsWith('/grocery')) newActiveSection = 'grocery';
     else if (pathname.startsWith('/cosmetics')) newActiveSection = 'cosmetics';
     else if (pathname.startsWith('/fastfood')) newActiveSection = 'fastfood';
-
-    // Determine if the current page is one where search is relevant.
+    
     const isSearchRelevantPage = pathname === '/sections' ||
                                  pathname.startsWith('/grocery') ||
                                  pathname.startsWith('/cosmetics') ||
                                  pathname.startsWith('/fastfood');
 
-    // Clear search term if navigating to a page where search isn't relevant.
     if (!isSearchRelevantPage && searchTerm) {
       setSearchTerm('');
       setSearchFilterType('all');
     }
 
     if (newActiveSection) {
-      // We are in a specific product section (e.g., /grocery, /cosmetics, /fastfood)
       if (newActiveSection !== currentSection) {
-        // This means we've either entered a section for the first time,
-        // or switched directly from one section to another (though current UI doesn't directly support this).
         setCurrentSection(newActiveSection);
         setCurrentSectionConfig(sectionsConfig[newActiveSection]);
-        // Reset states that are specific to a section
         setCart([]);
         setWishlist([]);
         setViewedProducts([]);
         setRecommendations([]);
         setSelectedCategory('all');
-        // Search term and filter type are preserved as they are relevant within sections.
       }
     } else {
-      // We are on a "global" page (e.g., /, /sections, /help, /account, /settings)
-      if (currentSection !== null) {
-        // This means we were in a specific product section and have navigated to a global page.
-        // We need to reset the section-specific context.
+      // Navigating to a global page like /sections, /, /help, /account, /settings
+      if (currentSection !== null) { // If previously in a specific section
         setCurrentSection(null);
         setCurrentSectionConfig(null);
-        // Reset states specific to a section
         setCart([]);
         setWishlist([]);
         setViewedProducts([]);
         setRecommendations([]);
         setSelectedCategory('all');
-        // Search term is handled by `isSearchRelevantPage` logic above for /sections.
-        // For the root page ('/'), if search term exists, clear it.
-        if (pathname === '/' && searchTerm) {
+         // Clear search term if leaving a section for a non-section global page
+        if (pathname === '/' && searchTerm) { // Specifically for root, if others needed, expand this
             setSearchTerm('');
             setSearchFilterType('all');
         }
       }
-      // If we are on a global page and `currentSection` is already `null`, no major state change needed here,
-      // search term handling is done above.
     }
-  }, [pathname, currentSection, searchTerm]); // Added searchTerm to dependencies to re-evaluate search clearing
+  }, [pathname, currentSection, searchTerm]);
 
   const addToCart = useCallback((product: Product) => {
     setCart((prevCart) => {
@@ -308,6 +346,8 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
         setSearchTerm,
         searchFilterType,
         setSearchFilterType,
+        theme,
+        setTheme,
         addToCart,
         removeFromCart,
         updateCartQuantity,

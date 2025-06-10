@@ -2,6 +2,7 @@
 // src/app/settings/page.tsx
 "use client";
 
+import React from 'react'; // Ensure React is imported for useState if used locally, or for JSX
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
@@ -9,15 +10,18 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Bell, Palette, ShieldAlert, Trash2, Languages, Sun, Moon, Laptop } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
+import { useAppContext } from '@/contexts/AppContext'; // Import useAppContext
 
 export default function SettingsPage() {
-  // Placeholder state for settings
+  const { theme, setTheme } = useAppContext(); // Use theme from context
+
+  // Placeholder state for notifications and language
   const [notifications, setNotifications] = React.useState({
     email: true,
     push: false,
     sms: false,
   });
-  const [theme, setTheme] = React.useState("system"); // system, light, dark
+  // const [theme, setTheme] = React.useState("system"); // system, light, dark // Replaced by context
   const [language, setLanguage] = React.useState("en");
 
   const handleNotificationChange = (type: keyof typeof notifications, value: boolean) => {
@@ -40,10 +44,14 @@ export default function SettingsPage() {
           <CardContent className="space-y-6">
             <div className="flex items-center justify-between">
               <Label htmlFor="theme-select" className="flex items-center gap-2">
+                {/* Dynamically display icon based on context theme */}
                 {theme === 'light' ? <Sun className="h-5 w-5" /> : theme === 'dark' ? <Moon className="h-5 w-5" /> : <Laptop className="h-5 w-5" />}
                 Theme
               </Label>
-              <Select value={theme} onValueChange={setTheme}>
+              <Select 
+                value={theme} 
+                onValueChange={(newThemeValue) => setTheme(newThemeValue as 'light' | 'dark' | 'system')}
+              >
                 <SelectTrigger id="theme-select" className="w-[180px]">
                   <SelectValue placeholder="Select theme" />
                 </SelectTrigger>
@@ -147,6 +155,3 @@ export default function SettingsPage() {
     </div>
   );
 }
-
-// React import for useState and other hooks if not already present
-import React from 'react';
