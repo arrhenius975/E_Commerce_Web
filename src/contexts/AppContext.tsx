@@ -109,69 +109,65 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
 
   const { toast } = useToast();
 
-  useEffect(() => {
-    if (pathname) {
-      let activeSection: AppSection | null = null;
-      if (pathname.startsWith('/grocery')) activeSection = 'grocery';
-      else if (pathname.startsWith('/cosmetics')) activeSection = 'cosmetics';
-      else if (pathname.startsWith('/fastfood')) activeSection = 'fastfood';
+ useEffect(() => {
+    if (!pathname) return;
 
-      // Determine if the current page is one where section-specific data/search applies
-      const isAppFeaturePage = pathname === '/sections' || // Includes section selector
-                               pathname.startsWith('/grocery') ||
-                               pathname.startsWith('/cosmetics') ||
-                               pathname.startsWith('/fastfood');
+    let newActiveSection: AppSection | null = null;
+    if (pathname.startsWith('/grocery')) newActiveSection = 'grocery';
+    else if (pathname.startsWith('/cosmetics')) newActiveSection = 'cosmetics';
+    else if (pathname.startsWith('/fastfood')) newActiveSection = 'fastfood';
 
-      if (activeSection && activeSection !== currentSection) {
-        // Switching to a new product section
-        setCurrentSection(activeSection);
-        setCurrentSectionConfig(sectionsConfig[activeSection]);
+    // Determine if the current page is one where search is relevant.
+    const isSearchRelevantPage = pathname === '/sections' ||
+                                 pathname.startsWith('/grocery') ||
+                                 pathname.startsWith('/cosmetics') ||
+                                 pathname.startsWith('/fastfood');
+
+    // Clear search term if navigating to a page where search isn't relevant.
+    if (!isSearchRelevantPage && searchTerm) {
+      setSearchTerm('');
+      setSearchFilterType('all');
+    }
+
+    if (newActiveSection) {
+      // We are in a specific product section (e.g., /grocery, /cosmetics, /fastfood)
+      if (newActiveSection !== currentSection) {
+        // This means we've either entered a section for the first time,
+        // or switched directly from one section to another (though current UI doesn't directly support this).
+        setCurrentSection(newActiveSection);
+        setCurrentSectionConfig(sectionsConfig[newActiveSection]);
+        // Reset states that are specific to a section
         setCart([]);
         setWishlist([]);
         setViewedProducts([]);
         setRecommendations([]);
         setSelectedCategory('all');
-        setSearchTerm('');
-        setSearchFilterType('all');
-      } else if (!activeSection && currentSection !== null) {
-        // Navigating away from a product section to a global page like /help, /account, or / (new main landing)
-        // but not /sections (which is also global-ish but handles search)
-        if (pathname !== '/sections') {
-            // setCurrentSection(null); // Keep currentSection if navigating to /help etc, header might need it.
-            // setCurrentSectionConfig(null); // No, header needs this to show correct "BoutiqueBox" and link to "/"
-                                          // The header should look "global" when currentSection is null
-        }
-        if (!isAppFeaturePage) { // Clear search if navigating to true global pages (not /sections)
+        // Search term and filter type are preserved as they are relevant within sections.
+      }
+    } else {
+      // We are on a "global" page (e.g., /, /sections, /help, /account, /settings)
+      if (currentSection !== null) {
+        // This means we were in a specific product section and have navigated to a global page.
+        // We need to reset the section-specific context.
+        setCurrentSection(null);
+        setCurrentSectionConfig(null);
+        // Reset states specific to a section
+        setCart([]);
+        setWishlist([]);
+        setViewedProducts([]);
+        setRecommendations([]);
+        setSelectedCategory('all');
+        // Search term is handled by `isSearchRelevantPage` logic above for /sections.
+        // For the root page ('/'), if search term exists, clear it.
+        if (pathname === '/' && searchTerm) {
             setSearchTerm('');
             setSearchFilterType('all');
         }
-      } else if (!activeSection && (pathname === '/' || pathname === '/sections')) {
-        // On the new main landing page '/' or the section selector page '/sections'
-        // No specific product section is active.
-        if (currentSection !== null) { // Was previously in a section, now on / or /sections
-            setCurrentSection(null);
-            setCurrentSectionConfig(null);
-            // Keep search term if on /sections, clear if on new /
-            if (pathname === '/') {
-              setSearchTerm('');
-              setSearchFilterType('all');
-            }
-             // Reset cart/wishlist etc. when leaving a section for / or /sections
-            setCart([]);
-            setWishlist([]);
-            setViewedProducts([]);
-            setRecommendations([]);
-            setSelectedCategory('all');
-        }
       }
-
-      // General rule: if not on a page where search applies, clear search term
-      if (!isAppFeaturePage && searchTerm) {
-        setSearchTerm('');
-        setSearchFilterType('all');
-      }
+      // If we are on a global page and `currentSection` is already `null`, no major state change needed here,
+      // search term handling is done above.
     }
-  }, [pathname, currentSection, searchTerm]);
+  }, [pathname, currentSection, searchTerm]); // Added searchTerm to dependencies to re-evaluate search clearing
 
   const addToCart = useCallback((product: Product) => {
     setCart((prevCart) => {
@@ -338,3 +334,4 @@ export const useAppContext = () => {
   }
   return context;
 };
+
