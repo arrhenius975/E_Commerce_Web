@@ -1,3 +1,4 @@
+
 // src/ai/flows/personalized-recommendations.ts
 'use server';
 
@@ -20,6 +21,7 @@ const PersonalizedRecommendationsInputSchema = z.object({
     .string()
     .optional()
     .describe('Optional user preferences to refine recommendations.'),
+  // Removed currentCategory as the flow should be generic. Filtering by category can happen client-side if needed.
 });
 
 export type PersonalizedRecommendationsInput = z.infer<
@@ -46,12 +48,16 @@ const prompt = ai.definePrompt({
   name: 'personalizedRecommendationsPrompt',
   input: {schema: PersonalizedRecommendationsInputSchema},
   output: {schema: PersonalizedRecommendationsOutputSchema},
-  prompt: `You are a personal shopping assistant. Based on the products the user has viewed and their stated preferences, recommend products that they might be interested in.
+  prompt: `You are a personal shopping assistant. Based on the products the user has viewed (by their IDs) and their stated preferences, recommend other relevant product IDs.
+You should try to recommend diverse products.
 
-Viewed Products: {{viewedProducts}}
+Viewed Product IDs: {{viewedProducts}}
 User Preferences: {{userPreferences}}
 
-Based on this information, what products would you recommend? Return ONLY an array of product IDs.`,
+Based on this information, what product IDs would you recommend? Return ONLY an array of product IDs. Do not include products already viewed.
+Aim for 3-5 recommendations if possible.
+Example output: ["prod-123", "prod-456", "prod-789"]
+`,
 });
 
 const personalizedRecommendationsFlow = ai.defineFlow(
@@ -62,6 +68,11 @@ const personalizedRecommendationsFlow = ai.defineFlow(
   },
   async input => {
     const {output} = await prompt(input);
-    return output!;
+    // Ensure output is not null and is an array, even if empty.
+    // The schema validation should handle this, but as a fallback:
+    if (!output || !Array.isArray(output.recommendations)) {
+        return { recommendations: [] };
+    }
+    return output;
   }
 );

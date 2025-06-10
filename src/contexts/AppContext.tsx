@@ -1,40 +1,95 @@
 
 "use client";
 
-import type { Product, CartItem, WishlistItem, ProductCategory } from '@/types';
-import React, { createContext, useContext, useState, ReactNode, useCallback } from 'react';
+import type { Product, CartItem, WishlistItem, ProductCategory, AppSection, SectionConfig, SectionCategory } from '@/types';
+import React, { createContext, useContext, useState, ReactNode, useCallback, useEffect } from 'react';
+import { usePathname } from 'next/navigation';
 import { useToast } from "@/hooks/use-toast";
 import { generatePersonalizedRecommendations, type PersonalizedRecommendationsOutput } from '@/ai/flows/personalized-recommendations';
-import { products as allProducts } from '@/data/products'; // Import all products for recommendations
+
+// Import section-specific data
+import { groceryProducts, groceryCategories } from '@/data/groceryProducts';
+import { cosmeticsProducts, cosmeticsCategories } from '@/data/cosmeticsProducts';
+import { fastfoodProducts, fastfoodCategories } from '@/data/fastfoodProducts';
+
+const sectionsConfig: Record<AppSection, SectionConfig> = {
+  grocery: {
+    name: 'Grocery',
+    path: '/grocery',
+    themeClass: 'theme-grocery',
+    products: groceryProducts,
+    categories: groceryCategories,
+    hero: {
+      title: 'Fresh Groceries, Delivered Fast!',
+      subtitle: 'Your one-stop shop for fresh meats, vegetables, fruits, bread, and more.'
+    }
+  },
+  cosmetics: {
+    name: 'Cosmetics',
+    path: '/cosmetics',
+    themeClass: 'theme-cosmetics',
+    products: cosmeticsProducts,
+    categories: cosmeticsCategories,
+    hero: {
+      title: 'Discover Your Radiance',
+      subtitle: 'Explore premium skincare, makeup, and fragrances.'
+    }
+  },
+  fastfood: {
+    name: 'Fast Food',
+    path: '/fastfood',
+    themeClass: 'theme-fastfood',
+    products: fastfoodProducts,
+    categories: fastfoodCategories,
+    hero: {
+      title: 'Craveable Classics, Speedy Delivery',
+      subtitle: 'Get your favorite burgers, pizzas, and sides in a flash.'
+    }
+  },
+};
+
 
 interface AppContextType {
   cart: CartItem[];
   wishlist: WishlistItem[];
-  viewedProducts: string[];
+  viewedProducts: string[]; // IDs of viewed products within the current section
   isCartOpen: boolean;
   isWishlistOpen: boolean;
   isRecommendationsModalOpen: boolean;
-  recommendations: Product[];
+  recommendations: Product[]; // Products recommended within the current section
   isLoadingRecommendations: boolean;
-  selectedCategory: ProductCategory;
-  setSelectedCategory: (category: ProductCategory) => void;
+  
+  currentSection: AppSection | null;
+  currentSectionConfig: SectionConfig | null;
+  
+  selectedCategory: ProductCategory | 'all'; // Sub-category within the current section
+  setSelectedCategory: (category: ProductCategory | 'all') => void;
+  
   addToCart: (product: Product) => void;
   removeFromCart: (productId: string) => void;
   updateCartQuantity: (productId: string, quantity: number) => void;
+  clearCart: () => void;
+
   addToWishlist: (product: Product) => void;
   removeFromWishlist: (productId: string) => void;
+  
   addToViewedProducts: (productId: string) => void;
+  
   toggleCart: () => void;
   toggleWishlist: () => void;
+  
   openRecommendationsModal: () => void;
   closeRecommendationsModal: () => void;
   fetchRecommendations: () => Promise<void>;
-  clearCart: () => void;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
 
 export const AppProvider = ({ children }: { children: ReactNode }) => {
+  const pathname = usePathname();
+  const [currentSection, setCurrentSection] = useState<AppSection | null>(null);
+  const [currentSectionConfig, setCurrentSectionConfig] = useState<SectionConfig | null>(null);
+
   const [cart, setCart] = useState<CartItem[]>([]);
   const [wishlist, setWishlist] = useState<WishlistItem[]>([]);
   const [viewedProducts, setViewedProducts] = useState<string[]>([]);
@@ -43,8 +98,33 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   const [isRecommendationsModalOpen, setIsRecommendationsModalOpen] = useState(false);
   const [recommendations, setRecommendations] = useState<Product[]>([]);
   const [isLoadingRecommendations, setIsLoadingRecommendations] = useState(false);
-  const [selectedCategory, setSelectedCategory] = useState<ProductCategory>('all');
+  const [selectedCategory, setSelectedCategory] = useState<ProductCategory | 'all'>('all');
+  
   const { toast } = useToast();
+
+  useEffect(() => {
+    if (pathname) {
+      let activeSection: AppSection | null = null;
+      if (pathname.startsWith('/grocery')) activeSection = 'grocery';
+      else if (pathname.startsWith('/cosmetics')) activeSection = 'cosmetics';
+      else if (pathname.startsWith('/fastfood')) activeSection = 'fastfood';
+
+      if (activeSection && activeSection !== currentSection) {
+        setCurrentSection(activeSection);
+        setCurrentSectionConfig(sectionsConfig[activeSection]);
+        // Reset section-specific states
+        setCart([]);
+        setWishlist([]);
+        setViewedProducts([]);
+        setRecommendations([]);
+        setSelectedCategory('all');
+      } else if (!activeSection && currentSection !== null) {
+        // If navigating away from a known section (e.g. to /help), keep last section config for header context
+        // or clear it if preferred. For now, keep it.
+        // If landing on a non-section page first, currentSection will be null.
+      }
+    }
+  }, [pathname, currentSection]);
 
   const addToCart = useCallback((product: Product) => {
     setCart((prevCart) => {
@@ -75,7 +155,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     setCart((prevCart) =>
       prevCart.map((item) =>
         item.id === productId ? { ...item, quantity } : item
-      ).filter(item => item.quantity > 0) // Remove if quantity is 0
+      ).filter(item => item.quantity > 0)
     );
   }, []);
   
@@ -116,21 +196,21 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   const addToViewedProducts = useCallback((productId: string) => {
     setViewedProducts((prev) => {
       if (prev.includes(productId)) return prev;
-      return [...prev, productId].slice(-10); // Keep last 10 viewed products
+      const newViewed = [...prev, productId];
+      return newViewed.slice(-10); 
     });
   }, []);
 
   const toggleCart = useCallback(() => setIsCartOpen(prev => !prev), []);
   const toggleWishlist = useCallback(() => setIsWishlistOpen(prev => !prev), []);
-
   const openRecommendationsModal = useCallback(() => setIsRecommendationsModalOpen(true), []);
   const closeRecommendationsModal = useCallback(() => setIsRecommendationsModalOpen(false), []);
 
   const fetchRecommendations = useCallback(async () => {
-    if (viewedProducts.length === 0) {
+    if (!currentSectionConfig || viewedProducts.length === 0) {
       toast({
         title: "Not enough data",
-        description: "View some products to get personalized recommendations.",
+        description: "View some products in this section to get personalized recommendations.",
         variant: "destructive",
       });
       return;
@@ -141,7 +221,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
         viewedProducts: viewedProducts,
       });
       const recommendedProducts = result.recommendations
-        .map(id => allProducts.find(p => p.id === id))
+        .map(id => currentSectionConfig.products.find(p => p.id === id))
         .filter((p): p is Product => Boolean(p));
       
       setRecommendations(recommendedProducts);
@@ -164,8 +244,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     } finally {
       setIsLoadingRecommendations(false);
     }
-  }, [viewedProducts, toast, openRecommendationsModal]);
-
+  }, [viewedProducts, toast, openRecommendationsModal, currentSectionConfig]);
 
   return (
     <AppContext.Provider
@@ -178,11 +257,14 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
         isRecommendationsModalOpen,
         recommendations,
         isLoadingRecommendations,
+        currentSection,
+        currentSectionConfig,
         selectedCategory,
         setSelectedCategory,
         addToCart,
         removeFromCart,
         updateCartQuantity,
+        clearCart,
         addToWishlist,
         removeFromWishlist,
         addToViewedProducts,
@@ -191,7 +273,6 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
         openRecommendationsModal,
         closeRecommendationsModal,
         fetchRecommendations,
-        clearCart,
       }}
     >
       {children}

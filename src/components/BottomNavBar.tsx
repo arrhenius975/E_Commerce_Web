@@ -7,49 +7,46 @@ import { Button } from '@/components/ui/button';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import { useAppContext } from '@/contexts/AppContext';
-import { useToast } from '@/hooks/use-toast';
-
-
-const navItems = [
-  { href: '/', label: 'Home', icon: Home },
-  { href: '/#categories', label: 'Categories', icon: LayoutGrid, isScrollLink: true }, // Special handling for categories scroll
-  { href: '/help', label: 'Help', icon: HelpCircle },
-  { href: '/account', label: 'Account', icon: User },
-  { href: '/settings', label: 'Settings', icon: SettingsIcon },
-];
 
 export function BottomNavBar() {
   const pathname = usePathname();
-  const { toast } = useToast();
-  const { setSelectedCategory } = useAppContext();
+  const { setSelectedCategory, currentSectionConfig } = useAppContext();
 
+  const sectionHomePath = currentSectionConfig?.path || '/'; // Default to main landing if no section
 
-  const handleCategoriesClick = (e: React.MouseEvent<HTMLAnchorElement, MouseEvent>) => {
-    if (pathname === '/') {
+  const navItems = [
+    { href: sectionHomePath, label: 'Home', icon: Home },
+    { href: `${sectionHomePath}#product-grid-section`, label: 'Categories', icon: LayoutGrid, isScrollLink: true },
+    { href: '/help', label: 'Help', icon: HelpCircle },
+    { href: '/account', label: 'Account', icon: User },
+    { href: '/settings', label: 'Settings', icon: SettingsIcon },
+  ];
+
+  const handleCategoriesClick = (e: React.MouseEvent<HTMLAnchorElement, MouseEvent>, href: string) => {
+    // Only scroll if on the section's main page
+    if (pathname === sectionHomePath) {
       e.preventDefault();
-      const categoriesSection = document.getElementById('product-grid-section'); // Assuming ProductGrid has an ID or a parent
+      const categoriesSection = document.getElementById('product-grid-section');
       if (categoriesSection) {
         categoriesSection.scrollIntoView({ behavior: 'smooth' });
       }
-      setSelectedCategory('all'); // Reset to 'all' or focus the category section
+      setSelectedCategory('all');
     } else {
-      // If not on home page, just navigate to home (categories are in header)
-      // Or, implement a modal for categories if preferred for other pages
+      // If not on section home page, navigate to it and then scroll (or just navigate)
+      // For simplicity, direct navigation will occur via Link's href.
+      // To ensure scrolling after navigation, more complex logic or a state variable would be needed.
     }
   };
   
-  const handlePlaceholderClick = (e: React.MouseEvent<HTMLAnchorElement, MouseEvent>, label: string) => {
-    if (label === 'Help' || label === 'Account' || label === 'Settings') {
-        // Allow navigation for actual pages.
-        // If they were pure placeholders, you might e.preventDefault() and toast.
-    }
-  };
-
+  // Hide BottomNavBar on the main landing page ('/')
+  if (pathname === '/') {
+    return null;
+  }
 
   return (
     <nav className="fixed bottom-0 left-0 right-0 z-50 flex h-16 items-center justify-around border-t bg-background shadow-top md:hidden">
       {navItems.map((item) => {
-        const isActive = pathname === item.href;
+        const isActive = pathname === item.href || (item.isScrollLink && pathname === sectionHomePath);
         const Icon = item.icon;
         return (
           <Link
@@ -57,9 +54,7 @@ export function BottomNavBar() {
             key={item.label}
             onClick={(e) => {
               if (item.isScrollLink) {
-                handleCategoriesClick(e);
-              } else {
-                handlePlaceholderClick(e, item.label);
+                handleCategoriesClick(e, item.href);
               }
             }}
             className={cn(

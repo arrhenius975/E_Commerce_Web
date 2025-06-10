@@ -1,63 +1,100 @@
 
+// src/app/page.tsx (Main Landing Page)
 "use client";
 
-import { useMemo, useEffect } from 'react';
-import { products as allProductsData } from '@/data/products';
-import type { Product } from '@/types';
-import { ProductGrid } from '@/components/ProductGrid';
+import Link from 'next/link';
 import { Button } from '@/components/ui/button';
-import { useAppContext } from '@/contexts/AppContext';
-import { Lightbulb } from 'lucide-react';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { ShoppingBasket, Diamond, UtensilsCrossed } from 'lucide-react';
+import Image from 'next/image';
 
-export default function HomePage() {
-  const { 
-    fetchRecommendations, 
-    isLoadingRecommendations, 
-    addToViewedProducts,
-    selectedCategory // Get selectedCategory from context
-  } = useAppContext();
+const sections = [
+  {
+    name: 'Fresh Groceries',
+    description: 'Quality ingredients delivered to your door.',
+    href: '/grocery',
+    icon: ShoppingBasket,
+    themeColor: 'bg-green-500', // Tailwind direct color for simplicity here
+    image: 'https://placehold.co/600x400.png',
+    'data-ai-hint': 'grocery store',
+  },
+  {
+    name: 'Beauty & Cosmetics',
+    description: 'Discover your new favorite beauty products.',
+    href: '/cosmetics',
+    icon: Diamond,
+    themeColor: 'bg-pink-500',
+    image: 'https://placehold.co/600x400.png',
+    'data-ai-hint': 'cosmetics makeup',
+  },
+  {
+    name: 'Fast Food Cravings',
+    description: 'Quick and delicious meals, ready in minutes.',
+    href: '/fastfood',
+    icon: UtensilsCrossed,
+    themeColor: 'bg-red-500',
+    image: 'https://placehold.co/600x400.png',
+    'data-ai-hint': 'fast food',
+  },
+];
 
-  useEffect(() => {
-    if (allProductsData.length > 0) {
-      addToViewedProducts(allProductsData[0].id);
-      if (allProductsData.length > 1) {
-         addToViewedProducts(allProductsData[1].id);
-      }
-    }
-  }, [addToViewedProducts]);
-
-  const filteredProducts = useMemo(() => {
-    if (selectedCategory === 'all') {
-      return allProductsData;
-    }
-    return allProductsData.filter((product) => product.category === selectedCategory);
-  }, [selectedCategory]);
-
+export default function MainPage() {
   return (
-    <div className="container mx-auto py-8 px-4">
-      <section className="mb-12 text-center">
-        <h1 className="font-headline text-4xl font-bold mb-4 text-primary">Fresh Groceries, Delivered Fast!</h1>
-        <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-          Your one-stop shop for fresh meats, vegetables, fruits, bread, and more.
+    <div className="flex flex-col items-center justify-center min-h-screen py-12 bg-gradient-to-br from-background to-secondary/30">
+      <header className="text-center mb-16">
+        <h1 className="font-headline text-5xl font-bold text-primary mb-4">
+          Welcome to Your One-Stop Shop!
+        </h1>
+        <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
+          Choose a section below to start exploring a world of products tailored for you.
         </p>
-      </section>
+      </header>
 
-      {/* CategoryTabs component is removed from here, categories are now in Header */}
-      
-      <div id="product-grid-section"> {/* Added ID for scrolling */}
-        <ProductGrid products={filteredProducts} />
-      </div>
+      <main className="grid grid-cols-1 md:grid-cols-3 gap-8 px-4 max-w-6xl w-full">
+        {sections.map((section) => (
+          <Link href={section.href} key={section.name} legacyBehavior>
+            <a className="block group">
+              <Card className="overflow-hidden transition-all duration-300 ease-in-out hover:shadow-2xl hover:scale-105 h-full flex flex-col">
+                <CardHeader className="p-0">
+                  <div className="relative w-full h-48">
+                    <Image 
+                      src={section.image} 
+                      alt={section.name} 
+                      layout="fill" 
+                      objectFit="cover" 
+                      className="transition-transform duration-300 group-hover:scale-110"
+                      data-ai-hint={section['data-ai-hint']}
+                    />
+                    <div className={`absolute inset-0 bg-gradient-to-t from-black/70 to-transparent`}></div>
+                     <div className={`absolute top-4 right-4 p-3 rounded-full bg-card/80 shadow-lg`}>
+                       <section.icon className={`w-8 h-8 ${section.href === '/grocery' ? 'text-green-500' : section.href === '/cosmetics' ? 'text-pink-500' : 'text-red-500' }`} />
+                    </div>
+                  </div>
+                </CardHeader>
+                <CardContent className="flex-grow p-6 flex flex-col justify-between">
+                  <div>
+                    <CardTitle className="font-headline text-2xl mb-2 text-foreground">{section.name}</CardTitle>
+                    <CardDescription className="text-muted-foreground mb-4">{section.description}</CardDescription>
+                  </div>
+                  <Button className={`w-full mt-auto ${section.themeColor} hover:opacity-90 text-white`} size="lg">
+                    Explore {section.href.substring(1)}
+                    <span aria-hidden="true" className="ml-2">→</span>
+                  </Button>
+                </CardContent>
+              </Card>
+            </a>
+          </Link>
+        ))}
+      </main>
 
-      <section className="mt-16 py-12 bg-secondary/50 rounded-lg text-center">
-        <h2 className="font-headline text-3xl font-bold mb-4">You might need</h2>
-        <p className="text-muted-foreground mb-6 max-w-xl mx-auto">
-          Let our AI assistant help you find products you'll love based on what you've viewed.
-        </p>
-        <Button size="lg" onClick={fetchRecommendations} disabled={isLoadingRecommendations}>
-          <Lightbulb className="mr-2 h-5 w-5" />
-          {isLoadingRecommendations ? 'Getting Suggestions...' : 'See Suggestions'}
-        </Button>
-      </section>
+      <footer className="mt-20 text-center text-muted-foreground">
+        <p>&copy; {new Date().getFullYear()} BoutiqueBox Multi-Store. All rights reserved.</p>
+         <div className="mt-4 space-x-4">
+            <Link href="/help" className="hover:text-primary">Help Center</Link>
+            <Link href="/account" className="hover:text-primary">My Account</Link>
+            <Link href="/settings" className="hover:text-primary">Settings</Link>
+          </div>
+      </footer>
     </div>
   );
 }
