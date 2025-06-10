@@ -2,15 +2,24 @@
 "use client";
 
 import Link from 'next/link';
-import { ShoppingCart, Heart, ShoppingBag, Lightbulb, MapPin, Search as SearchIcon } from 'lucide-react';
+import { ShoppingCart, Heart, ShoppingBag, Lightbulb, MapPin, Search as SearchIcon, Filter } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { useAppContext } from '@/contexts/AppContext';
-import type { SectionCategory } from '@/types';
+import type { SectionCategory, SearchFilterType } from '@/types';
 import { cn } from '@/lib/utils';
 import { usePathname } from 'next/navigation';
 import { useEffect } from 'react';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuLabel,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 export function Header() {
   const { 
@@ -26,6 +35,8 @@ export function Header() {
     currentSection,
     searchTerm,
     setSearchTerm,
+    searchFilterType,
+    setSearchFilterType,
   } = useAppContext();
   const pathname = usePathname();
 
@@ -43,18 +54,16 @@ export function Header() {
                            pathname.startsWith('/fastfood');
 
   useEffect(() => {
-    if (!isAppFeaturePage) {
-      setSearchTerm('');
-    }
-  }, [pathname, isAppFeaturePage, setSearchTerm]);
+    // AppContext now handles resetting search term for non-feature pages
+  }, [pathname, setSearchTerm]);
 
 
   const numCategories = categoriesList.length;
-  const categoryArcRadius = 80; // Increased radius
+  const categoryArcRadius = 80; 
   const yOffsetForArc = 5; 
   const angleSpan = numCategories > 1 ? 180 : 0; 
   const startAngle = numCategories > 1 ? -angleSpan / 2 : 0; 
-  const iconPixelWidth = 48; // Approx pixel width of w-12 for centering calculation
+  const iconPixelWidth = 48;
 
 
   return (
@@ -87,20 +96,45 @@ export function Header() {
         
         {isAppFeaturePage && (
           <div className="flex-1 min-w-0 px-2 md:px-4">
-            <div className="relative w-full max-w-xs sm:max-w-sm md:max-w-md mx-auto">
+            <div className="relative w-full max-w-xs sm:max-w-sm md:max-w-md mx-auto flex items-center">
               <SearchIcon className="absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground pointer-events-none" />
               <Input
                 type="search"
                 placeholder="Search..."
                 className={cn(
-                  "w-full rounded-lg bg-transparent py-2 pl-8 pr-2 h-9 text-sm",
-                  currentSectionConfig 
-                    ? "border-[hsl(var(--header-fg-hsl)/0.3)] text-[hsl(var(--header-fg-hsl))] placeholder:text-[hsl(var(--header-fg-hsl)/0.7)] focus:bg-[hsl(var(--background))] focus:text-foreground" 
-                    : "border-input placeholder:text-muted-foreground focus:bg-background/50"
+                  "w-full rounded-lg bg-transparent py-2 pl-8 h-9 text-sm",
+                  currentSectionConfig ? "border-[hsl(var(--header-fg-hsl)/0.3)] text-[hsl(var(--header-fg-hsl))] placeholder:text-[hsl(var(--header-fg-hsl)/0.7)] focus:bg-[hsl(var(--background))] focus:text-foreground" : "border-input placeholder:text-muted-foreground focus:bg-background/50",
+                  currentSectionConfig ? "pr-10" : "pr-2" // Add more padding if filter is present
                 )}
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
+              {currentSectionConfig && (
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className={cn(
+                        "absolute right-1 top-1/2 -translate-y-1/2 h-7 w-7",
+                        currentSectionConfig ? "text-[hsl(var(--header-fg-hsl)/0.8)] hover:bg-[hsl(var(--header-fg-hsl)/0.1)] hover:text-[hsl(var(--header-fg-hsl))]" : "text-muted-foreground hover:bg-accent/10 hover:text-accent-foreground"
+                      )}
+                      aria-label="Search filter options"
+                    >
+                      <Filter className="h-4 w-4" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-[180px]">
+                    <DropdownMenuLabel>Filter by</DropdownMenuLabel>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuRadioGroup value={searchFilterType} onValueChange={(value) => setSearchFilterType(value as SearchFilterType)}>
+                      <DropdownMenuRadioItem value="all">All</DropdownMenuRadioItem>
+                      <DropdownMenuRadioItem value="name">Product Name</DropdownMenuRadioItem>
+                      <DropdownMenuRadioItem value="description">Description</DropdownMenuRadioItem>
+                    </DropdownMenuRadioGroup>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              )}
             </div>
           </div>
         )}

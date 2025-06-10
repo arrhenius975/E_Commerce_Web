@@ -14,7 +14,8 @@ export default function FastFoodHomePage() {
     isLoadingRecommendations, 
     addToViewedProducts,
     selectedCategory,
-    searchTerm // Get searchTerm from context
+    searchTerm,
+    searchFilterType // Get searchFilterType from context
   } = useAppContext();
 
   const allProductsData = currentSectionConfig?.products || [];
@@ -37,13 +38,23 @@ export default function FastFoodHomePage() {
     }
 
     if (searchTerm) {
-      products = products.filter(product =>
-        product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        product.description.toLowerCase().includes(searchTerm.toLowerCase())
-      );
+      const lowerSearchTerm = searchTerm.toLowerCase();
+      products = products.filter(product => {
+        const nameMatch = product.name.toLowerCase().includes(lowerSearchTerm);
+        const descriptionMatch = product.description.toLowerCase().includes(lowerSearchTerm);
+
+        if (searchFilterType === 'name') {
+          return nameMatch;
+        }
+        if (searchFilterType === 'description') {
+          return descriptionMatch;
+        }
+        // Default 'all'
+        return nameMatch || descriptionMatch;
+      });
     }
     return products;
-  }, [selectedCategory, allProductsData, searchTerm]);
+  }, [selectedCategory, allProductsData, searchTerm, searchFilterType]);
 
   if (!currentSectionConfig) {
     return <div>Loading section...</div>;

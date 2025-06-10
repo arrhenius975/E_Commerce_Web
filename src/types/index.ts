@@ -54,3 +54,5 @@ export interface SectionConfig {
     subtitle: string;
   };
 }
+
+export type SearchFilterType = 'all' | 'name' | 'description';

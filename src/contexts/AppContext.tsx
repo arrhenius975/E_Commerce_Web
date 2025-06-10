@@ -1,7 +1,7 @@
 
 "use client";
 
-import type { Product, CartItem, WishlistItem, ProductCategory, AppSection, SectionConfig, SectionCategory } from '@/types';
+import type { Product, CartItem, WishlistItem, ProductCategory, AppSection, SectionConfig, SectionCategory, SearchFilterType } from '@/types';
 import React, { createContext, useContext, useState, ReactNode, useCallback, useEffect } from 'react';
 import { usePathname } from 'next/navigation';
 import { useToast } from "@/hooks/use-toast";
@@ -67,6 +67,8 @@ interface AppContextType {
   
   searchTerm: string;
   setSearchTerm: (term: string) => void;
+  searchFilterType: SearchFilterType;
+  setSearchFilterType: (filterType: SearchFilterType) => void;
 
   addToCart: (product: Product) => void;
   removeFromCart: (productId: string) => void;
@@ -103,6 +105,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   const [isLoadingRecommendations, setIsLoadingRecommendations] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState<ProductCategory | 'all'>('all');
   const [searchTerm, setSearchTerm] = useState('');
+  const [searchFilterType, setSearchFilterType] = useState<SearchFilterType>('all');
   
   const { toast } = useToast();
 
@@ -113,6 +116,11 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
       else if (pathname.startsWith('/cosmetics')) activeSection = 'cosmetics';
       else if (pathname.startsWith('/fastfood')) activeSection = 'fastfood';
 
+      const isAppFeaturePage = pathname === '/' || 
+                               pathname.startsWith('/grocery') || 
+                               pathname.startsWith('/cosmetics') || 
+                               pathname.startsWith('/fastfood');
+
       if (activeSection && activeSection !== currentSection) {
         setCurrentSection(activeSection);
         setCurrentSectionConfig(sectionsConfig[activeSection]);
@@ -121,22 +129,32 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
         setViewedProducts([]);
         setRecommendations([]);
         setSelectedCategory('all');
-        setSearchTerm(''); // Reset search term when section changes
+        setSearchTerm(''); 
+        setSearchFilterType('all');
       } else if (!activeSection && currentSection !== null) {
-        // If navigating away from a known section (e.g. to /help or /),
-        // we might want to clear currentSection or keep it for header context.
-        // For now, if navigating to '/', keep it null unless explicitly set otherwise by main page effect.
-        if (pathname !== '/') {
-             // setCurrentSection(null); // This line could cause issues if header relies on it for non-section pages too.
-             // setCurrentSectionConfig(null);
-        }
+        // Clear section specific states if navigating away from a section homepage, but not if navigating to /
+         if (pathname !== '/') {
+            // setCurrentSection(null); // Potentially keep for non-section global pages if header needs it
+            // setCurrentSectionConfig(null);
+         }
+         if (!isAppFeaturePage) { // Clear search if navigating to help/account/settings
+            setSearchTerm('');
+            setSearchFilterType('all');
+         }
+
       } else if (!activeSection && currentSection === null && pathname === '/') {
-        // Ensures that if landing on '/' first, no section is active
         setCurrentSection(null);
         setCurrentSectionConfig(null);
+        // setSearchTerm(''); // Search term should persist if on landing page
+        // setSearchFilterType('all'); // Filter type is not used on landing
+      }
+
+      if (!isAppFeaturePage && searchTerm) { // Clear search if on a non-feature page
+        setSearchTerm('');
+        setSearchFilterType('all');
       }
     }
-  }, [pathname, currentSection]);
+  }, [pathname, currentSection, searchTerm]);
 
   const addToCart = useCallback((product: Product) => {
     setCart((prevCart) => {
@@ -275,6 +293,8 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
         setSelectedCategory,
         searchTerm,
         setSearchTerm,
+        searchFilterType,
+        setSearchFilterType,
         addToCart,
         removeFromCart,
         updateCartQuantity,
