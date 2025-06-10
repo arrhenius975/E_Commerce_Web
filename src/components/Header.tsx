@@ -50,10 +50,11 @@ export function Header() {
 
 
   const numCategories = categoriesList.length;
-  const categoryArcRadius = 60; 
+  const categoryArcRadius = 80; // Increased radius
   const yOffsetForArc = 5; 
-  const angleSpan = numCategories > 1 ? 180 : 0; // Increased from 140 to 180
+  const angleSpan = numCategories > 1 ? 180 : 0; 
   const startAngle = numCategories > 1 ? -angleSpan / 2 : 0; 
+  const iconPixelWidth = 48; // Approx pixel width of w-12 for centering calculation
 
 
   return (
@@ -156,8 +157,8 @@ export function Header() {
       </div>
 
       {currentSection && categoriesList.length > 0 && (
-        <div className="relative h-20 md:h-28 mt-2 flex justify-center items-start"> {/* Removed overflow-hidden */}
-          <div className="relative w-[280px] h-[70px] sm:w-[360px] sm:h-[90px] md:w-[420px] md:h-[105px]">
+        <div className="relative h-36 md:h-40 mt-2 flex justify-center items-start">
+          <div className="relative w-[280px] h-[140px] sm:w-[360px] sm:h-[140px] md:w-[420px] md:h-[140px]">
             {categoriesList.map((category, index) => {
               const angle = numCategories > 1 ? startAngle + (index / (numCategories - 1)) * angleSpan : 0;
               const radian = angle * (Math.PI / 180);
@@ -166,7 +167,6 @@ export function Header() {
               const y = categoryArcRadius * (1 - Math.cos(radian)) + yOffsetForArc;
 
               const iconSizeClass = "w-12 h-12 sm:w-14 sm:h-14"; 
-              const iconSize = 12 * (14/12); 
 
               return (
                 <button
@@ -182,7 +182,7 @@ export function Header() {
                     "flex flex-col items-center justify-center" 
                   )}
                   style={{
-                    left: `calc(50% + ${x}px - ${iconSize / 2}px)`, 
+                    left: `calc(50% + ${x}px - ${iconPixelWidth / 2}px)`, 
                     top: `${y}px`, 
                     transform: `rotate(${angle}deg)`, 
                   }}
