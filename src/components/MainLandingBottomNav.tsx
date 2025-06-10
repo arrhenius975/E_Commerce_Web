@@ -1,3 +1,4 @@
+
 // src/components/MainLandingBottomNav.tsx
 "use client";
 
@@ -10,18 +11,15 @@ export function MainLandingBottomNav() {
   const pathname = usePathname();
 
   const navItems = [
-    { href: '/', label: 'Home', icon: Home }, // New Main Homepage
-    { href: '/sections', label: 'Categories', icon: LayoutGrid }, // Section selector page
+    { href: '/', label: 'Home', icon: Home },
+    { href: '/sections', label: 'Stores', icon: LayoutGrid }, // Renamed 'Categories' to 'Stores' for clarity
     { href: '/help', label: 'Help', icon: HelpCircle },
     { href: '/account', label: 'Account', icon: User },
     { href: '/settings', label: 'Settings', icon: SettingsIcon },
   ];
 
-  // This specific bottom nav is only intended for /sections page,
-  // but its inclusion is controlled by SectionsLayout.
-  // We add a check here for explicit safety, though it might be redundant
-  // if SectionsLayout is the only place it's used.
-  if (pathname !== '/sections') {
+  // Show this bottom nav only on the root page ('/') and the sections page ('/sections')
+  if (pathname !== '/' && pathname !== '/sections') {
     return null;
   }
 
