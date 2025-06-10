@@ -6,8 +6,8 @@ import { Toaster } from "@/components/ui/toaster";
 import { LayoutComponent } from '@/components/Layout';
 
 export const metadata: Metadata = {
-  title: 'BoutiqueBox - Your Curated Shopping Experience',
-  description: 'Discover unique products in groceries, cosmetics, fast food, and tech with BoutiqueBox.',
+  title: 'BoutiqueBox - Fresh Groceries Delivered',
+  description: 'Your one-stop shop for fresh meats, vegetables, fruits, bread, and all your grocery needs.',
 };
 
 export default function RootLayout({

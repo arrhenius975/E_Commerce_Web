@@ -3,7 +3,7 @@
 
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import type { ProductCategory } from '@/types';
-import { Apple, Palette, Pizza, Laptop, LayoutGrid } from 'lucide-react'; // Package for 'all'
+import { LayoutGrid, Drumstick, Carrot, Grape, Cookie } from 'lucide-react';
 
 interface CategoryTabsProps {
   selectedCategory: ProductCategory;
@@ -12,10 +12,10 @@ interface CategoryTabsProps {
 
 const categories: { value: ProductCategory; label: string; icon: React.ElementType }[] = [
   { value: 'all', label: 'All', icon: LayoutGrid },
-  { value: 'groceries', label: 'Groceries', icon: Apple },
-  { value: 'cosmetics', label: 'Cosmetics', icon: Palette },
-  { value: 'fastfood', label: 'Fast Food', icon: Pizza },
-  { value: 'tech', label: 'Tech', icon: Laptop },
+  { value: 'meats', label: 'Meats', icon: Drumstick },
+  { value: 'vegetables', label: 'Vegetables', icon: Carrot },
+  { value: 'fruits', label: 'Fruits', icon: Grape },
+  { value: 'breads', label: 'Breads', icon: Cookie },
 ];
 
 export function CategoryTabs({ selectedCategory, onCategoryChange }: CategoryTabsProps) {

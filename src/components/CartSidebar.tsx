@@ -2,18 +2,35 @@
 "use client";
 
 import Image from 'next/image';
+import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetFooter, SheetClose } from '@/components/ui/sheet';
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
+import { Label } from "@/components/ui/label"
 import { useAppContext } from '@/contexts/AppContext';
 import { X, Minus, Plus } from 'lucide-react';
 
 export function CartSidebar() {
   const { cart, isCartOpen, toggleCart, removeFromCart, updateCartQuantity, clearCart } = useAppContext();
+  const [selectedDeliverySlot, setSelectedDeliverySlot] = useState<string>('today-pm');
 
   const totalAmount = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
+
+  const deliverySlots = [
+    { id: 'today-pm', label: 'Today, 12 PM - 2 PM' },
+    { id: 'tomorrow-am', label: 'Tomorrow, 10 AM - 12 PM' },
+    { id: 'tomorrow-pm', label: 'Tomorrow, 2 PM - 4 PM' },
+  ];
+
+  const handleCheckout = () => {
+    const selectedSlotDetails = deliverySlots.find(slot => slot.id === selectedDeliverySlot);
+    alert(`Proceeding to Checkout!\nSelected Delivery: ${selectedSlotDetails?.label || 'Not selected'}\nTotal: $${totalAmount.toFixed(2)}`);
+    clearCart();
+    toggleCart();
+  };
 
   return (
     <Sheet open={isCartOpen} onOpenChange={toggleCart}>
@@ -74,6 +91,19 @@ export function CartSidebar() {
                 ))}
               </div>
             </ScrollArea>
+            
+            <div className="my-4 pr-6">
+              <h4 className="mb-2 text-sm font-medium">Delivery Options</h4>
+              <RadioGroup value={selectedDeliverySlot} onValueChange={setSelectedDeliverySlot} className="space-y-1">
+                {deliverySlots.map(slot => (
+                  <div key={slot.id} className="flex items-center space-x-2">
+                    <RadioGroupItem value={slot.id} id={slot.id} />
+                    <Label htmlFor={slot.id} className="text-sm font-normal">{slot.label}</Label>
+                  </div>
+                ))}
+              </RadioGroup>
+            </div>
+
             <Separator className="my-4" />
             <SheetFooter className="pr-6">
               <div className="flex w-full flex-col gap-4">
@@ -81,7 +111,7 @@ export function CartSidebar() {
                   <span>Subtotal</span>
                   <span>${totalAmount.toFixed(2)}</span>
                 </div>
-                <Button size="lg" className="w-full" onClick={() => { alert('Proceeding to Checkout!'); clearCart(); toggleCart();}}>
+                <Button size="lg" className="w-full" onClick={handleCheckout}>
                   Checkout
                 </Button>
                  <Button variant="outline" size="sm" className="w-full" onClick={clearCart}>

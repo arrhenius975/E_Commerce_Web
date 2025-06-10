@@ -1,5 +1,5 @@
 
-export type ProductCategory = 'groceries' | 'cosmetics' | 'fastfood' | 'tech' | 'all';
+export type ProductCategory = 'all' | 'meats' | 'vegetables' | 'fruits' | 'breads';
 
 export interface Product {
   id: string;
