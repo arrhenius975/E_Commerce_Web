@@ -13,7 +13,8 @@ export default function GroceryHomePage() {
     fetchRecommendations, 
     isLoadingRecommendations, 
     addToViewedProducts,
-    selectedCategory 
+    selectedCategory,
+    searchTerm // Get searchTerm from context
   } = useAppContext();
 
   const allProductsData = currentSectionConfig?.products || [];
@@ -28,14 +29,24 @@ export default function GroceryHomePage() {
   }, [addToViewedProducts, allProductsData]);
 
   const filteredProducts = useMemo(() => {
-    if (selectedCategory === 'all' || !selectedCategory) {
-      return allProductsData;
+    if (!allProductsData) return [];
+    let products = allProductsData;
+
+    if (selectedCategory !== 'all' && selectedCategory) {
+      products = products.filter((product) => product.category === selectedCategory);
     }
-    return allProductsData.filter((product) => product.category === selectedCategory);
-  }, [selectedCategory, allProductsData]);
+
+    if (searchTerm) {
+      products = products.filter(product =>
+        product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        product.description.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+    }
+    return products;
+  }, [selectedCategory, allProductsData, searchTerm]);
 
   if (!currentSectionConfig) {
-    return <div>Loading section...</div>; // Or a more sophisticated loader
+    return <div>Loading section...</div>;
   }
   
   const { hero } = currentSectionConfig;

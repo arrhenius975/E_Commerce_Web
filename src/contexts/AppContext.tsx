@@ -52,19 +52,22 @@ const sectionsConfig: Record<AppSection, SectionConfig> = {
 interface AppContextType {
   cart: CartItem[];
   wishlist: WishlistItem[];
-  viewedProducts: string[]; // IDs of viewed products within the current section
+  viewedProducts: string[];
   isCartOpen: boolean;
   isWishlistOpen: boolean;
   isRecommendationsModalOpen: boolean;
-  recommendations: Product[]; // Products recommended within the current section
+  recommendations: Product[];
   isLoadingRecommendations: boolean;
   
   currentSection: AppSection | null;
   currentSectionConfig: SectionConfig | null;
   
-  selectedCategory: ProductCategory | 'all'; // Sub-category within the current section
+  selectedCategory: ProductCategory | 'all';
   setSelectedCategory: (category: ProductCategory | 'all') => void;
   
+  searchTerm: string;
+  setSearchTerm: (term: string) => void;
+
   addToCart: (product: Product) => void;
   removeFromCart: (productId: string) => void;
   updateCartQuantity: (productId: string, quantity: number) => void;
@@ -99,6 +102,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   const [recommendations, setRecommendations] = useState<Product[]>([]);
   const [isLoadingRecommendations, setIsLoadingRecommendations] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState<ProductCategory | 'all'>('all');
+  const [searchTerm, setSearchTerm] = useState('');
   
   const { toast } = useToast();
 
@@ -112,16 +116,24 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
       if (activeSection && activeSection !== currentSection) {
         setCurrentSection(activeSection);
         setCurrentSectionConfig(sectionsConfig[activeSection]);
-        // Reset section-specific states
         setCart([]);
         setWishlist([]);
         setViewedProducts([]);
         setRecommendations([]);
         setSelectedCategory('all');
+        setSearchTerm(''); // Reset search term when section changes
       } else if (!activeSection && currentSection !== null) {
-        // If navigating away from a known section (e.g. to /help), keep last section config for header context
-        // or clear it if preferred. For now, keep it.
-        // If landing on a non-section page first, currentSection will be null.
+        // If navigating away from a known section (e.g. to /help or /),
+        // we might want to clear currentSection or keep it for header context.
+        // For now, if navigating to '/', keep it null unless explicitly set otherwise by main page effect.
+        if (pathname !== '/') {
+             // setCurrentSection(null); // This line could cause issues if header relies on it for non-section pages too.
+             // setCurrentSectionConfig(null);
+        }
+      } else if (!activeSection && currentSection === null && pathname === '/') {
+        // Ensures that if landing on '/' first, no section is active
+        setCurrentSection(null);
+        setCurrentSectionConfig(null);
       }
     }
   }, [pathname, currentSection]);
@@ -261,6 +273,8 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
         currentSectionConfig,
         selectedCategory,
         setSelectedCategory,
+        searchTerm,
+        setSearchTerm,
         addToCart,
         removeFromCart,
         updateCartQuantity,

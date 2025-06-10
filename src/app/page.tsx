@@ -7,14 +7,16 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { ShoppingBasket, Diamond, UtensilsCrossed } from 'lucide-react';
 import Image from 'next/image';
+import { useAppContext } from '@/contexts/AppContext';
+import { useMemo } from 'react';
 
-const sections = [
+const sectionData = [
   {
     name: 'Fresh Groceries',
     description: 'Quality ingredients delivered to your door.',
     href: '/grocery',
     icon: ShoppingBasket,
-    themeColor: 'bg-green-500', // Tailwind direct color for simplicity here
+    themeColor: 'bg-green-500', 
     image: 'https://placehold.co/600x400.png',
     'data-ai-hint': 'grocery store',
   },
@@ -39,19 +41,29 @@ const sections = [
 ];
 
 export default function MainPage() {
+  const { searchTerm } = useAppContext();
+
+  const displayedSections = useMemo(() => {
+    if (!searchTerm) return sectionData;
+    return sectionData.filter(section =>
+      section.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      section.description.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+  }, [searchTerm]);
+
   return (
     <div className="flex flex-col items-center justify-center min-h-screen py-12 bg-gradient-to-br from-background to-secondary/30">
-      <header className="text-center mb-16">
+      <header className="text-center mb-16 px-4">
         <h1 className="font-headline text-5xl font-bold text-primary mb-4">
-          Welcome to Your One-Stop Shop!
+          Welcome to BoutiqueBox!
         </h1>
         <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-          Choose a section below to start exploring a world of products tailored for you.
+          Your one-stop shop for Groceries, Cosmetics, and Fast Food. Explore our curated sections.
         </p>
       </header>
 
       <main className="grid grid-cols-1 md:grid-cols-3 gap-8 px-4 max-w-6xl w-full">
-        {sections.map((section) => (
+        {displayedSections.length > 0 ? displayedSections.map((section) => (
           <Link href={section.href} key={section.name} legacyBehavior>
             <a className="block group">
               <Card className="overflow-hidden transition-all duration-300 ease-in-out hover:shadow-2xl hover:scale-105 h-full flex flex-col">
@@ -84,11 +96,15 @@ export default function MainPage() {
               </Card>
             </a>
           </Link>
-        ))}
+        )) : (
+          <p className="md:col-span-3 text-center text-muted-foreground text-lg py-10">
+            No sections match your search.
+          </p>
+        )}
       </main>
 
       <footer className="mt-20 text-center text-muted-foreground">
-        <p>&copy; {new Date().getFullYear()} BoutiqueBox Multi-Store. All rights reserved.</p>
+        <p>&copy; {new Date().getFullYear()} BoutiqueBox. All rights reserved.</p>
          <div className="mt-4 space-x-4">
             <Link href="/help" className="hover:text-primary">Help Center</Link>
             <Link href="/account" className="hover:text-primary">My Account</Link>
