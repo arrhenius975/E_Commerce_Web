@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Edit3, MapPin, Package, ShieldCheck, CreditCard, LogOut } from "lucide-react";
+import { Edit3, MapPin, Package, ShieldCheck, CreditCard, LogOut, ShoppingBasket, Bell, Heart, MessageSquareQuestion } from "lucide-react";
 import Link from "next/link";
 
 export default function AccountPage() {
@@ -78,38 +78,31 @@ export default function AccountPage() {
             <CardHeader>
               <CardTitle>Account Options</CardTitle>
             </CardHeader>
-            <CardContent className="space-y-3">
-              <Link href="#" className="flex items-center justify-between p-3 rounded-md hover:bg-secondary transition-colors">
-                <div className="flex items-center gap-3">
-                  <Package className="h-5 w-5 text-primary" />
-                  <span>Order History</span>
-                </div>
-                <Edit3 className="h-4 w-4 text-muted-foreground" />
-              </Link>
-              <Separator />
-              <Link href="#" className="flex items-center justify-between p-3 rounded-md hover:bg-secondary transition-colors">
-                <div className="flex items-center gap-3">
-                  <MapPin className="h-5 w-5 text-primary" />
-                  <span>Saved Addresses</span>
-                </div>
-                <Edit3 className="h-4 w-4 text-muted-foreground" />
-              </Link>
-               <Separator />
-              <Link href="#" className="flex items-center justify-between p-3 rounded-md hover:bg-secondary transition-colors">
-                <div className="flex items-center gap-3">
-                  <CreditCard className="h-5 w-5 text-primary" />
-                  <span>Payment Methods</span>
-                </div>
-                <Edit3 className="h-4 w-4 text-muted-foreground" />
-              </Link>
-              <Separator />
-               <Link href="#" className="flex items-center justify-between p-3 rounded-md hover:bg-secondary transition-colors">
-                <div className="flex items-center gap-3">
-                  <ShieldCheck className="h-5 w-5 text-primary" />
-                  <span>Security & Password</span>
-                </div>
-                <Edit3 className="h-4 w-4 text-muted-foreground" />
-              </Link>
+            <CardContent className="space-y-1">
+              {[
+                { label: "Order History", icon: ShoppingBasket, href: "/account/orders" },
+                { label: "Saved Addresses", icon: MapPin, href: "#" }, // Placeholder for future Saved Addresses page
+                { label: "Payment Methods", icon: CreditCard, href: "#" }, // Placeholder for future Payment Methods page
+                { label: "Notification Preferences", icon: Bell, href: "/settings" }, // Link to existing settings page
+                { label: "My Wishlist", icon: Heart, href: "#", action: () => console.log("Open Wishlist Sidebar via context") }, // Needs context integration
+                { label: "Security & Password", icon: ShieldCheck, href: "#" }, // Placeholder
+                { label: "Help & Support", icon: MessageSquareQuestion, href: "/help" }, // Link to existing help page
+              ].map(item => (
+                <React.Fragment key={item.label}>
+                  <Link 
+                    href={item.href} 
+                    className="flex items-center justify-between p-3 rounded-md hover:bg-secondary transition-colors"
+                    onClick={item.action}
+                  >
+                    <div className="flex items-center gap-3">
+                      <item.icon className="h-5 w-5 text-primary" />
+                      <span>{item.label}</span>
+                    </div>
+                    <Edit3 className="h-4 w-4 text-muted-foreground" />
+                  </Link>
+                  <Separator />
+                </React.Fragment>
+              ))}
             </CardContent>
           </Card>
         </div>

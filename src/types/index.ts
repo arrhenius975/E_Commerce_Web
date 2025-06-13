@@ -56,3 +56,37 @@ export interface SectionConfig {
 }
 
 export type SearchFilterType = 'all' | 'name' | 'description';
+
+// Added for Admin/Order features (mock structures)
+export interface AdminUser {
+  id: string;
+  email: string;
+  role: 'admin' | 'editor'; // Example roles
+}
+
+export interface OrderItemSummary {
+  productId: string;
+  name: string;
+  quantity: number;
+  price: number; // Price at time of purchase
+  image: string;
+}
+export interface Order {
+  id: string;
+  userId: string; // Link to user
+  date: string; // ISO date string
+  status: 'Processing' | 'Shipped' | 'Delivered' | 'Cancelled';
+  items: OrderItemSummary[];
+  totalAmount: number;
+  shippingAddress: string; // Simplified
+}
+
+export interface Review {
+  id: string;
+  productId: string;
+  userId: string;
+  authorName: string;
+  rating: number; // 1-5
+  comment: string;
+  date: string; // ISO date string
+}
