@@ -6,43 +6,50 @@ import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import { ShoppingBag, Home as HomeIcon, Truck, Search } from 'lucide-react';
 import Link from 'next/link';
+import React from 'react'; // No need for useState/useCallback if not using horizontal slider logic
 
 export default function NewMainHomepage() {
+  // Define slidesContent INSIDE the component so JSX elements are correctly handled
   const slidesContent = [
     {
       id: 'welcome',
       content: (
-        <div className="relative flex flex-col items-center justify-center text-center px-4 md:px-8 h-full text-white">
+        // This fragment ensures Image and overlays are direct children of the <section>
+        // allowing layout="fill" to work correctly against the section's dimensions.
+        <>
           <Image
-            src="https://placehold.co/1920x1080.png"
+            src="https://placehold.co/1920x1080.png" // User can change this
             alt="BoutiqueBox welcome background"
             layout="fill"
             objectFit="cover"
-            className="z-[-1]"
+            className="z-[-1]" // Places image behind other content
             data-ai-hint="welcome background"
             priority // Prioritize loading for the first slide image
           />
           <div className="absolute inset-0 bg-black/50 z-0"></div> {/* Overlay for text readability */}
-          <div className="relative z-10"> {/* Content container */}
-            <ShoppingBag className="w-24 h-24 text-primary mb-6" />
-            <h1 className="font-headline text-4xl md:text-5xl font-bold text-white mb-4"> {/* Changed text to white */}
+          
+          {/* Text content container, centered within the section */}
+          <div className="relative z-10 flex flex-col items-center justify-center text-center h-full text-white px-4 md:px-8">
+            <ShoppingBag className="w-24 h-24 text-primary mb-6" /> {/* items-center on parent centers this */}
+            <h1 className="font-headline text-4xl md:text-5xl font-bold text-white mb-4">
               Welcome to BoutiqueBox!
             </h1>
-            <p className="font-body text-lg md:text-xl text-gray-200 max-w-2xl"> {/* Changed text to light gray */}
+            <p className="font-body text-lg md:text-xl text-gray-200 max-w-2xl">
               Your one-stop destination for curated collections of groceries, cosmetics, and fast food,
               all delivered with convenience and care. Discover quality, variety, and seamless shopping tailored to your lifestyle.
             </p>
           </div>
-        </div>
+        </>
       ),
     },
     {
       id: 'why-us',
       content: (
+        // This div will be centered by the parent section's flex properties
         <div className="flex flex-col md:flex-row items-center justify-center h-full w-full max-w-6xl gap-8 px-6 md:px-12 py-8 md:py-0">
           <div className="w-full md:w-1/3 lg:w-2/5 relative aspect-[3/4] rounded-lg overflow-hidden shadow-xl max-h-[70vh] md:max-h-full">
             <Image
-              src="https://placehold.co/600x800.png" // You can change this link
+              src="https://placehold.co/600x800.png" // User can change this link
               alt="Modern convenient lifestyle"
               layout="fill"
               objectFit="cover"
@@ -69,6 +76,7 @@ export default function NewMainHomepage() {
     {
       id: 'services',
       content: (
+        // This div will be centered by the parent section's flex properties
         <div className="flex flex-col items-center justify-center text-center px-4 md:px-8">
           <h2 className="font-headline text-4xl md:text-5xl font-bold text-primary mb-10">
             Explore Our Range of Services
@@ -106,10 +114,13 @@ export default function NewMainHomepage() {
 
   return (
     <div className="h-screen overflow-y-scroll scroll-snap-type-y-mandatory bg-gradient-to-br from-background to-secondary/20">
-      {slidesContent.map((slide) => (
+      {slidesContent.map((slide, index) => (
         <section
           key={slide.id}
-          className="min-h-screen flex flex-col items-center justify-center p-0 scroll-snap-align-start relative overflow-hidden" // Added p-0, relative, overflow-hidden
+          className={
+            "min-h-screen flex flex-col items-center justify-center scroll-snap-align-start relative" +
+            (index === 0 ? " p-0 overflow-hidden" : " px-4 md:px-8") // Ensures only first slide section has p-0 and overflow-hidden for bg image
+          }
         >
           {/* The content for each slide is now a self-contained structure */}
           {slide.content}
@@ -118,3 +129,4 @@ export default function NewMainHomepage() {
     </div>
   );
 }
+
