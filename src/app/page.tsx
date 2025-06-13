@@ -121,7 +121,11 @@ export default function NewMainHomepage() {
             style={{ transform: `translateX(-${currentSlide * 100}%)`, width: `${totalSlides * 100}%` }}
           >
             {slides.map((slide, index) => (
-              <div key={slide.id} className="w-full h-full flex-shrink-0 flex items-center justify-center p-2 sm:p-4">
+              <div 
+                key={slide.id} 
+                className="h-full flex-shrink-0 flex items-center justify-center p-2 sm:p-4"
+                style={{ width: `${100 / totalSlides}%` }} // Corrected width for each slide
+              >
                 {slide.content}
               </div>
             ))}
