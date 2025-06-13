@@ -8,8 +8,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Edit3, MapPin, Package, ShieldCheck, CreditCard, LogOut, ShoppingBasket, Bell, Heart, MessageSquareQuestion } from "lucide-react";
+import { Edit3, MapPin, Package, ShieldCheck, CreditCard, LogOut, ShoppingBasket, Bell, Heart, MessageSquareQuote } from "lucide-react"; // Changed here
 import Link from "next/link";
+import React from "react"; // Added React import
 
 export default function AccountPage() {
   // Placeholder data - in a real app, this would come from user state/API
@@ -86,11 +87,11 @@ export default function AccountPage() {
                 { label: "Notification Preferences", icon: Bell, href: "/settings" }, // Link to existing settings page
                 { label: "My Wishlist", icon: Heart, href: "#", action: () => console.log("Open Wishlist Sidebar via context") }, // Needs context integration
                 { label: "Security & Password", icon: ShieldCheck, href: "#" }, // Placeholder
-                { label: "Help & Support", icon: MessageSquareQuestion, href: "/help" }, // Link to existing help page
+                { label: "Help & Support", icon: MessageSquareQuote, href: "/help" }, // Changed here
               ].map(item => (
                 <React.Fragment key={item.label}>
-                  <Link 
-                    href={item.href} 
+                  <Link
+                    href={item.href}
                     className="flex items-center justify-between p-3 rounded-md hover:bg-secondary transition-colors"
                     onClick={item.action}
                   >
